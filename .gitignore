@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+vision_venv/
+backend_venv/
+.venv/
+venv/
+
+# Logs & debug output
+*.log
+debug_out.txt
+error_trace.txt
+full_error.txt
+simulate_output.txt
+test_output.txt
+
+# Database (local dev)
+*.db
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Nested project / local artifacts
+partner_part/
+backups/

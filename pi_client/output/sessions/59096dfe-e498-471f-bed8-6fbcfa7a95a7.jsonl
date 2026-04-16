@@ -1,0 +1,4 @@
+{"timestamp": "2026-04-16T17:15:55Z", "state": "focused", "scores": {"attention": 100.0, "posture": 100.0, "fatigue": 0.0, "distraction": 0.0}, "confidence": 0.1, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:15:56Z", "state": "focused", "scores": {"attention": 100.0, "posture": 100.0, "fatigue": 0.0, "distraction": 2.6}, "confidence": 0.39, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:15:57Z", "state": "focused", "scores": {"attention": 100.0, "posture": 100.0, "fatigue": 0.0, "distraction": 2.1}, "confidence": 0.81, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:15:58Z", "state": "focused", "scores": {"attention": 100.0, "posture": 60.7, "fatigue": 21.6, "distraction": 2.0}, "confidence": 0.95, "phone_detected": false, "events": []}

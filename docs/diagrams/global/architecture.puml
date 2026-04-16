@@ -1,0 +1,35 @@
+@startuml "Architecture Globale"
+!define RECTANGLE rectangle
+
+package "Edge - Raspberry Pi" {
+  [Module Vision] as vision
+  [Module Capteurs] as sensors
+  [Moteur de Décision] as dec
+  [Client API] as client
+  [Retour Matériel] as hw
+  [Écran du Boîtier] as screen
+}
+
+package "Backend - FastAPI" {
+  [API REST] as api
+  [Gestionnaire de Session] as session
+  [Moteur IA / RAG] as rag
+  [Base de Données] as db
+}
+
+package "Présentation (Mobile)" {
+  [Application Mobile] as app
+}
+
+vision --> dec : "métriques [0-1]"
+sensors --> dec
+dec --> hw : "déclenche alertes"
+dec --> screen : "affiche status/alertes"
+dec --> client : "pousse événements/stats"
+client ..> api : "POST /metrics"
+api --> session
+session --> db
+rag <--> db
+app <--> api : "GET /stats"
+
+@enduml

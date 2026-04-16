@@ -1,0 +1,26 @@
+@startuml "Séquence Assistant IA (RAG)"
+autonumber
+actor "Utilisateur" as U
+participant "Application Mobile" as App
+participant "Backend FastAPI" as BE
+database "Vector Store (Chroma)" as VS
+participant "LLM (OpenAI/Ollama)" as AI
+database "Base de Données" as DB
+
+U -> App : Pose une question ("Comment améliorer ma posture ?")
+App -> BE : POST /ai/query {session_id, user_query}
+
+group RAG Pipeline
+    BE -> DB : Récupérer métriques récentes (last 30m)
+    DB --> BE : data: {posture_avg=0.7, stress=low}
+    
+    BE -> VS : Recherche sémantique (documents PDF importés)
+    VS --> BE : contexte: {extraits sur l'ergonomie}
+    
+    BE -> AI : Prompt (Contexte Documents + Métriques Live + Question)
+    AI --> BE : Réponse générée
+end
+
+BE --> App : Réponse JSON
+App --> U : Affiche la réponse + Conseils personnalisés
+@enduml

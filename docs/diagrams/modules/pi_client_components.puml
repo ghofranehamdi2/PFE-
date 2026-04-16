@@ -1,0 +1,42 @@
+@startuml "Pipeline Client Pi"
+skinparam componentStyle uml2
+
+package "Couche d'Entrée" {
+  [Caméra]
+  [Microphone]
+}
+
+package "Cœur Vision" {
+  [Analyseur Posture] as post
+  [Analyseur Fatigue] as fatigue
+  [Analyseur Attention] as attention
+  [Analyseur Stress] as stress
+}
+
+package "Cœur Décision" {
+  [Moteur de Décision] as motor
+  [Config Locale] as cfg
+}
+
+package "Couche de Sortie" {
+  [Client API] as api_c
+  [Contrôleur Matériel] as hw_c
+  [Écran du Boîtier] as screen_c
+}
+
+Caméra --> post
+Caméra --> fatigue
+Caméra --> attention
+Caméra --> stress
+
+post --> motor
+fatigue --> motor
+attention --> motor
+stress --> motor
+
+cfg --> motor
+motor --> hw_c : "Signal d'alerte"
+motor --> screen_c : "Status/Alerte visuelle"
+motor --> api_c : "Synchroniser métriques"
+
+@enduml

@@ -1,0 +1,12 @@
+{
+  "session_id": "01532cb1-1745-43ef-8747-d58d359f06f1",
+  "session_duration": 66.0,
+  "average_attention": 100.0,
+  "average_posture": 41.43,
+  "average_fatigue": 37.88,
+  "average_distraction": 2.58,
+  "distraction_ratio": 0.0,
+  "posture_quality": 0.0,
+  "fatigue_level": "moderate",
+  "final_score": 79.29
+}

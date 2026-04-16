@@ -1,0 +1,10 @@
+{"timestamp": "2026-04-16T17:46:18Z", "state": "focused", "scores": {"attention": 100.0, "posture": 100.0, "fatigue": 0.0, "distraction": 0.0}, "confidence": 0.1, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:46:18Z", "state": "focused", "scores": {"attention": 100.0, "posture": 68.5, "fatigue": 0.0, "distraction": 7.3}, "confidence": 0.86, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:46:19Z", "state": "focused", "scores": {"attention": 100.0, "posture": 53.6, "fatigue": 0.0, "distraction": 2.2}, "confidence": 0.84, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:46:19Z", "state": "focused", "scores": {"attention": 100.0, "posture": 51.4, "fatigue": 0.0, "distraction": 2.0}, "confidence": 0.86, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:46:20Z", "state": "focused", "scores": {"attention": 100.0, "posture": 48.1, "fatigue": 0.0, "distraction": 2.0}, "confidence": 0.86, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:46:20Z", "state": "focused", "scores": {"attention": 100.0, "posture": 51.7, "fatigue": 0.0, "distraction": 2.0}, "confidence": 0.8, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:46:21Z", "state": "focused", "scores": {"attention": 100.0, "posture": 52.3, "fatigue": 0.0, "distraction": 2.0}, "confidence": 0.95, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:46:21Z", "state": "focused", "scores": {"attention": 100.0, "posture": 52.0, "fatigue": 6.0, "distraction": 2.0}, "confidence": 0.95, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:46:22Z", "state": "focused", "scores": {"attention": 100.0, "posture": 45.6, "fatigue": 10.7, "distraction": 2.0}, "confidence": 0.95, "phone_detected": false, "events": []}
+{"timestamp": "2026-04-16T17:46:23Z", "state": "focused", "scores": {"attention": 100.0, "posture": 39.1, "fatigue": 13.0, "distraction": 2.0}, "confidence": 0.95, "phone_detected": false, "events": []}

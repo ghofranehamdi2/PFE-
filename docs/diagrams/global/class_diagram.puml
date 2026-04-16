@@ -1,0 +1,63 @@
+@startuml "Diagramme de Classes - Smart Focus"
+skinparam classAttributeIconSize 0
+
+package "Cœur Système" {
+  class Utilisateur {
+    - id : int
+    - email : string
+    - motDePasse : string
+    + seConnecter()
+    + consulterMobile()
+  }
+
+  class SessionFocus {
+    - id : int
+    - debut : DateTime
+    - fin : DateTime
+    - statut : string
+    + demarrer()
+    + terminer()
+    + ajouterMetrique(m: Metrique)
+  }
+}
+
+package "Analyse Vision (Pi)" {
+  abstract class Analyseur {
+    + analyser(frame: Frame) : Score
+  }
+
+  class AnalyseurPosture extends Analyseur
+  class AnalyseurFatigue extends Analyseur
+  class AnalyseurAttention extends Analyseur
+  class AnalyseurStress extends Analyseur
+
+  class MoteurDecision {
+    - seuils : Config
+    + traiter(scores: Map) : Alerte
+  }
+}
+
+package "Données & Alertes" {
+  class Metrique {
+    - posture : float
+    - fatigue : float
+    - stress : float
+    - attention : float
+    - horodatage : DateTime
+  }
+
+  class Evenement {
+    - type : string
+    - priorite : string
+    - details : JSON
+  }
+}
+
+Utilisateur "1" *-- "0..*" SessionFocus
+SessionFocus "1" *-- "0..*" Metrique
+SessionFocus "1" *-- "0..*" Evenement
+
+MoteurDecision ..> Evenement : crée
+Analyseur ..> Metrique : produit
+
+@enduml

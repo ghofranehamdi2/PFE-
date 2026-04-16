@@ -1,0 +1,15 @@
+{
+  "session_duration": 15.0,
+  "focus_time_ratio": 1.0,
+  "distraction_time_ratio": 0.0,
+  "reading_time": 6.0,
+  "posture_quality_score": 0.0,
+  "fatigue_level": "low",
+  "final_score": 84.3,
+  "breakdown": {
+    "attention_score": 100.0,
+    "posture_score": 35.06,
+    "fatigue_score": 2.8,
+    "distraction_score": 10.75
+  }
+}

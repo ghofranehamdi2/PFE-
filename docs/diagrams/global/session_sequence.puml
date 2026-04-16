@@ -1,0 +1,39 @@
+@startuml "Séquence de Session"
+autonumber
+actor Utilisateur
+participant "Client Pi" as Pi
+participant "Écran local" as SCR
+participant "Backend" as BE
+participant "Base de Données" as DB
+participant "Application Mobile" as App
+
+Utilisateur -> Pi : Démarrer Session
+Pi -> BE : POST /sessions/start
+BE -> DB : Créer Entrée Session
+BE --> Pi : session_id
+
+loop Chaque seconde
+    Pi -> Pi : Capturer Image
+    Pi -> Pi : Analyser (Posture/Fatigue...)
+    Pi -> SCR : Afficher score live
+    Pi -> BE : POST /sessions/{id}/metrics
+    BE -> DB : Stocker Métriques
+    
+    alt Seuil Dépassé
+        Pi -> Pi : Alerte Locale (LED/Vib)
+        Pi -> SCR : Afficher Message Alerte
+        Pi -> BE : POST /sessions/{id}/events
+        BE -> DB : Journaliser Événement
+    end
+end
+
+Utilisateur -> App : Consulter Historique
+App -> BE : GET /sessions/{id}/stats
+BE -> DB : Requêter données
+BE --> App : Résultats de résumé
+App --> Utilisateur : Afficher Graphiques
+
+Utilisateur -> Pi : Fin de Session
+Pi -> BE : POST /sessions/{id}/end
+BE -> DB : Fermer Session
+@enduml

@@ -1,0 +1,49 @@
+@startuml "ERD Base de Données"
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b>PK: x</b>
+!define foreign_key(x) <i>FK: x</i>
+
+Table(User, "utilisateurs") {
+  primary_key(id)
+  email
+  mot_de_passe_hache
+}
+
+Table(Device, "appareils") {
+  primary_key(id)
+  foreign_key(user_id)
+  jeton_appareil
+}
+
+Table(Session, "sessions") {
+  primary_key(id)
+  foreign_key(user_id)
+  heure_debut
+  heure_fin
+  statut
+}
+
+Table(Metric, "metriques") {
+  primary_key(id)
+  foreign_key(session_id)
+  score_posture
+  score_fatigue
+  score_stress
+  score_attention
+  horodatage
+}
+
+Table(Event, "evenements") {
+  primary_key(id)
+  foreign_key(session_id)
+  type
+  priorite
+  metadonnees (JSON)
+}
+
+User "1" -- "0..*" Session
+User "1" -- "0..*" Device
+Device "1" -- "0..*" Session
+Session "1" -- "0..*" Metric
+Session "1" -- "0..*" Event
+@enduml
