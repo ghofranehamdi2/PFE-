@@ -4,12 +4,28 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+*.pyc
+
+# Local env files
+.env
+**/.env
+
+# Generated runtime data
+**/output/
+**/uploads/
+**/chroma_db/
+*.sqlite
+*.sqlite3
+*.db-journal
 
 # Virtual environments
 vision_venv/
 backend_venv/
 .venv/
 venv/
+partner_venv/
+**/venv/
+**/.venv/
 
 # Logs & debug output
 *.log
@@ -18,6 +34,7 @@ error_trace.txt
 full_error.txt
 simulate_output.txt
 test_output.txt
+model_run_output.log
 
 # Database (local dev)
 *.db
