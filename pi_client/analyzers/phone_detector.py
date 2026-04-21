@@ -74,7 +74,7 @@ class PhoneDetector:
         return MIN_REL_AREA <= rel_area <= MAX_REL_AREA
 
     # ── Main analyze ──────────────────────────────────────────────────────────
-    def analyze(self, image) -> dict:
+    def analyze(self, image, face_box=None) -> dict:
         """
         Retourne:
             phone_found  (bool)
