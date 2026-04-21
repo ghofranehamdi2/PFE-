@@ -9,9 +9,9 @@ class ScoreEngine:
     def __init__(self):
         # Configuration for weights and base values
         self.weights = {
-            "attention": 0.5,
-            "posture": 0.2,
-            "vigilance": 0.3
+            "attention": 0.45,
+            "posture": 0.25,
+            "vigilance": 0.30
         }
 
     def compute_all(self, states: ConsolidatedStates, raw_posture_score: float = None) -> dict:
@@ -109,9 +109,9 @@ class ScoreEngine:
         """Calculates the global session score (0-100)."""
         # Weights: attention is dominant (65%), posture (17.5%), vigilance (17.5%)
         base_score = (
-            (attention * 0.65) +
-            (posture * 0.175) +
-            (vigilance * 0.175)
+            (attention * 0.45) +
+            (posture * 0.25) +
+            (vigilance * 0.30)
         )
         
         # Penalties for risk factors
