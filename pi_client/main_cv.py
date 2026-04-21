@@ -11,9 +11,9 @@ from analyzers.attention_analyzer import AttentionAnalyzer
 from analyzers.fatigue_analyzer import FatigueAnalyzer
 from analyzers.phone_detector import PhoneDetector
 from analyzers.posture_analyzer import PostureAnalyzer
-from analyzers.stress_analyzer import StressAnalyzer
 from engine.session_tracker import SessionTracker
 from engine.temporal_engine import TemporalEngine
+from engine.score_smoother import ScoreSmoother
 from output.api_client import APIClient
 from output.json_formatter import JSONFormatter
 from output.score_engine import ScoreEngine
@@ -67,9 +67,9 @@ class SmartFocusPipelineV3:
         # Detection (L1)
         self.attention = AttentionAnalyzer()
         self.fatigue = FatigueAnalyzer()
-        self.stress = StressAnalyzer()
         self.posture = PostureAnalyzer()
         self.phone = PhoneDetector()
+        # StressAnalyzer removed per user request
 
         # Temporal + decision engine (L2/L3/L4)
         self.engine = TemporalEngine(self.session_id)
@@ -79,6 +79,11 @@ class SmartFocusPipelineV3:
         self.formatter = JSONFormatter()
         self.api_client = APIClient(base_url=backend_url)
         self.tracker = SessionTracker(session_id=self.session_id)
+
+        # Smoothers for L1 outputs (latency=5 frames)
+        self.att_smoother = ScoreSmoother(window_size=5)
+        self.fat_smoother = ScoreSmoother(window_size=5)
+        self.pos_smoother = ScoreSmoother(window_size=5)
 
         # Optional UI (minimal; no raw intermediate states)
         self.ui = MinimalUI(window_name="SmartFocus", debug=ui_debug) if ui else None
@@ -170,17 +175,28 @@ class SmartFocusPipelineV3:
                     self._last_att = self.attention.analyze(analysis_frame, calibrating=calibrating)
                     yaw_deg = self._last_att.get("yaw", 0.0) if not calibrating else 0.0
                     self._last_fat = self.fatigue.analyze(analysis_frame, calibrating=calibrating, yaw_deg=yaw_deg)
-                    self._last_str = self.stress.analyze(analysis_frame, calibrating=calibrating)
 
                 if self._frame % POSTURE_SKIP == 0:
                     self._last_posture = self.posture.analyze(analysis_frame, calibrating=calibrating)
 
                 if self._frame % PHONE_SKIP == 0:
-                    self._last_phone = self.phone.analyze(frame)
+                    face_box = self._last_att.get("face_bbox")
+                    if face_box is not None:
+                        src_h, src_w = 120, 160  # attention analyzer input size
+                        dst_h, dst_w = frame.shape[:2]
+                        sx = dst_w / max(1, src_w)
+                        sy = dst_h / max(1, src_h)
+                        x1, y1, x2, y2 = face_box
+                        face_box = (
+                            int(x1 * sx),
+                            int(y1 * sy),
+                            int(x2 * sx),
+                            int(y2 * sy),
+                        )
+                    self._last_phone = self.phone.analyze(frame, face_box=face_box)
 
                 att_result = self._last_att or {}
                 fat_result = self._last_fat or {}
-                str_result = self._last_str or {}
 
                 if calibrating:
                     if self.ui:
@@ -200,17 +216,30 @@ class SmartFocusPipelineV3:
                     self._runtime_start = time.time()
                     self._last_emit = 0.0
 
-                # L2/L3/L4 processing
+                # L2/L3/L4 processing (Smoothed L1 inputs)
                 payload = self.engine.process(
-                    att=att_result,
-                    fat=fat_result,
-                    stress=str_result,
-                    pos=self._last_posture,
+                    att=self.att_smoother.smooth(att_result),
+                    fat=self.fat_smoother.smooth(fat_result),
+                    pos=self.pos_smoother.smooth(self._last_posture),
                     phone=self._last_phone,
                 )
 
-                # Emit outputs on interval (not every frame)
-                if (now - self._last_emit) >= self.output_interval_sec:
+                # Adaptive Sampling Strategy
+                # Stability check: unstable if not focused, alert active, or state is fresh
+                is_focused = payload.consolidated_states.work_mode == "focused"
+                alert_active = payload.alert.should_alert
+                state_stable_sec = payload.temporal_context.stable_state_for_sec if payload.temporal_context else 0.0
+                
+                is_stable = is_focused and not alert_active and state_stable_sec > 10.0
+                
+                # Requirements: 2-3s (unstable) vs 5-8s (stable)
+                current_interval = 6.5 if is_stable else 2.5
+                
+                # Fast-path: if a discrete event occurred (mode change, phone, etc.), trigger immediately
+                event_triggered = len(payload.events) > 0
+                
+                # Emit outputs on adaptive interval or immediate event
+                if event_triggered or (now - self._last_emit) >= current_interval:
                     self._last_emit = now
 
                     posture_for_scores = float(payload.metrics.get("posture_score", 70.0) or 70.0)
@@ -272,7 +301,6 @@ class SmartFocusPipelineV3:
                         factors={
                             "posture_state": cs.posture_state,
                             "fatigue_state": cs.fatigue_state,
-                            "stress_state": cs.stress_state,
                             "distraction": distraction,
                             "social_state": cs.social_state,
                             "eye_closed_instant": bool(fat_result.get("eye_closed")),

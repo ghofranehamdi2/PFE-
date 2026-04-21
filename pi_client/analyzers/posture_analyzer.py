@@ -160,6 +160,28 @@ class PostureAnalyzer:
         nose = lm[self.mp_pose.PoseLandmark.NOSE]
         sw   = abs(ls.x - rs.x)
 
+        # ── Visibility guard ───────────────────────────────────────────────────
+        # When head is turned far enough that shoulders become occluded, spine
+        # metrics become unreliable.  Return the last confirmed EMA values as
+        # a neutral reading rather than emitting a wildly wrong score.
+        avg_shoulder_vis = (ls.visibility + rs.visibility) / 2.0
+        if avg_shoulder_vis < 0.40:
+            return {
+                "slouch_score": 0.7,
+                "tilt_score": 0.8,
+                "fwd_score": 0.8,
+                "lean_score": 0.8,
+                "hands_on_knees": False,
+                "hand_near_face": False,
+                "is_calibrated": self.is_calibrated,
+                "inclination_axis": "neutral",
+                "inclination_degrees": 0.0,
+                "forward_inclination_deg": 0.0,
+                "lateral_inclination_deg": 0.0,
+                "posture_score": 70.0,
+                "bad_posture_confirmed": False,
+            }
+
         shoulder_mid, hip_mid, forward_deg, lateral_deg = self._spine_metrics(ls, rs, lh, rh)
         axis_label, axis_severity = self._classify_inclination(forward_deg, lateral_deg)
 

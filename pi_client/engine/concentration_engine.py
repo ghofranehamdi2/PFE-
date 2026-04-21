@@ -51,10 +51,9 @@ DISTRACT_HOLD    = 2.0
 STRESS_HOLD      = 3.0   # grimace needs longer confirmation to avoid transient
 
 # ── Score weights ─────────────────────────────────────────────────────────────
-W_ATTENTION = 0.35
-W_POSTURE   = 0.20
-W_FATIGUE   = 0.25
-W_STRESS    = 0.20
+W_ATTENTION = 0.45
+W_POSTURE   = 0.25
+W_FATIGUE   = 0.30
 
 
 class ConcentrationEngine:
@@ -164,11 +163,8 @@ class ConcentrationEngine:
             candidate = FocusState.PHONE_USAGE
             hold      = DISTRACT_HOLD
 
-        # 6. Stressed: grimace sustained above threshold
-        elif grimace_score > 50 and agitation > 30:
-            candidate = FocusState.STRESSED
-            hold      = STRESS_HOLD
-        elif grimace_score > 65:
+        # Stress candidate removed per user request
+        elif False: # was Stressed
             candidate = FocusState.STRESSED
             hold      = STRESS_HOLD
 
@@ -218,13 +214,11 @@ class ConcentrationEngine:
 
         pos_ok = posture.get("posture_score", 70)
         fat_ok = max(0, 100 - fatigue_score)
-        str_ok = max(0, 100 - agitation)
 
         instant_score = (
             W_ATTENTION * att_ok
             + W_POSTURE   * pos_ok
             + W_FATIGUE   * fat_ok
-            + W_STRESS    * str_ok
         )
 
         # Penalties are mild — score drops gradually via EMA
@@ -234,8 +228,13 @@ class ConcentrationEngine:
             instant_score *= 0.85
         if microsleep:
             instant_score *= 0.50
-        if grimace_score > 50:
-            instant_score *= 0.92
+        # Stress penalty removed
+        if phone_distracting:
+            instant_score *= 0.80
+        if social_distraction:
+            instant_score *= 0.85
+        if microsleep:
+            instant_score *= 0.50
 
         self._ema_score = self._EMA_ALPHA * instant_score + (1 - self._EMA_ALPHA) * self._ema_score
 

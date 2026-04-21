@@ -20,7 +20,6 @@ class ScoreEngine:
         attention_score = self._get_attention_score(states.work_mode)
         posture_score = raw_posture_score if raw_posture_score is not None else self._get_posture_score(states.posture_state)
         vigilance_score = self._get_vigilance_score(states.fatigue_state)
-        stress_risk = self._get_stress_risk(states.stress_state)
         distraction = self._get_distraction_score(states.work_mode)
         phone_risk = self._get_phone_risk(states.work_mode)
         
@@ -38,14 +37,13 @@ class ScoreEngine:
         
         # Session score calculation
         session_score = self._compute_session_score(
-            attention_score, posture_score, vigilance_score, stress_risk, phone_risk
+            attention_score, posture_score, vigilance_score, phone_risk
         )
         
         return {
             "attention_score": round(attention_score, 2),
             "posture_score": round(posture_score, 2),
             "vigilance_score": round(vigilance_score, 2),
-            "stress_risk_score": round(stress_risk, 2),
             "distraction_score": round(distraction, 2),
             "phone_risk_score": round(phone_risk, 2),
             "focus_score_global": round(max(0, global_focus), 2),
@@ -82,13 +80,6 @@ class ScoreEngine:
         }
         return mapping.get(fatigue_state, 50.0)
 
-    def _get_stress_risk(self, stress_state: str) -> float:
-        mapping = {
-            "normal": 0.0,
-            "stress_suspected": 50.0,
-            "stress_elevated": 100.0
-        }
-        return mapping.get(stress_state, 20.0)
 
     def _get_distraction_score(self, work_mode: str) -> float:
         mapping = {
@@ -114,18 +105,17 @@ class ScoreEngine:
             return 0.0
 
     def _compute_session_score(self, attention: float, posture: float, 
-                               vigilance: float, stress: float, phone_risk: float) -> float:
-        """ADDED: Calcule le score de session global (0-100)"""
-        # Weights: attention is dominant (60%), posture (15%), vigilance (15%), stress/phone (10%)
+                               vigilance: float, phone_risk: float) -> float:
+        """Calculates the global session score (0-100)."""
+        # Weights: attention is dominant (65%), posture (17.5%), vigilance (17.5%)
         base_score = (
-            (attention * 0.60) +
-            (posture * 0.15) +
-            (vigilance * 0.15)
+            (attention * 0.65) +
+            (posture * 0.175) +
+            (vigilance * 0.175)
         )
         
         # Penalties for risk factors
-        stress_penalty = (stress / 100.0) * 10.0  # Max 10 points de pénalité
         phone_penalty = (phone_risk / 100.0) * 15.0  # Max 15 points
         
-        session_score = base_score - stress_penalty - phone_penalty
+        session_score = base_score - phone_penalty
         return max(0.0, min(100.0, session_score))

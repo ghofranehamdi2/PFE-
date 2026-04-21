@@ -72,7 +72,6 @@ class MinimalUI:
             "social_distraction": "DISTRACTION (SOCIAL)",
             "good": "Bonne", "warning": "Attention", "bad": "Mauvaise",
             "normal": "Normale", "fatigue_warning": "Warning", "fatigue_high": "Critique",
-            "stress_suspected": "Suspecté", "stress_elevated": "Élevé",
             "alone": "Seul", "other_person_present": "Présence", "active_interaction": "Interaction",
             "not_detected": "Non détecté", "detected_not_used": "Détecté", "probable_in_use": "En main",
             "acceptable": "Acceptable", "poor_persistent": "Mauvaise (P)"
@@ -105,7 +104,6 @@ class MinimalUI:
             ui_items = [
                 ("Posture", TRANS.get(factors.get("posture_state", "good").lower(), factors.get("posture_state", "???")), "posture"),
                 ("Fatigue", TRANS.get(factors.get("fatigue_state", "normal").lower(), "Normale"), "fatigue"),
-                ("Stress", TRANS.get(factors.get("stress_state", "normal").lower(), "Normal"), "stress"),
                 ("Social", TRANS.get(factors.get("social_state", "alone").lower(), "Seul"), "social"),
                 ("Tél", "Détecté" if phone_detected else "Non détecté", "phone"),
             ]

@@ -21,11 +21,10 @@ class AttentionAnalyzer:
     Does not hold temporal buffers or maintain state, except for calibration baselines.
     """
     def __init__(self):
-        self.mp_face_mesh = mp.solutions.face_mesh
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
+        self.face_mesh = mp.solutions.face_mesh.FaceMesh(
             static_image_mode=False,
             max_num_faces=3,
-            refine_landmarks=False,
+            refine_landmarks=True,
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5
         )
@@ -102,6 +101,19 @@ class AttentionAnalyzer:
         except Exception:
             return 0.5
 
+    @staticmethod
+    def _face_bbox(landmarks, img_w: int, img_h: int):
+        try:
+            xs = [lm.x for lm in landmarks]
+            ys = [lm.y for lm in landmarks]
+            x1 = max(0, int(min(xs) * img_w))
+            y1 = max(0, int(min(ys) * img_h))
+            x2 = min(img_w - 1, int(max(xs) * img_w))
+            y2 = min(img_h - 1, int(max(ys) * img_h))
+            return (x1, y1, x2, y2)
+        except Exception:
+            return None
+
     def analyze(self, image, calibrating: bool = False) -> dict:
         h, w = image.shape[:2]
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -116,11 +128,13 @@ class AttentionAnalyzer:
                 "yaw": 0.0,
                 "pitch": 0.0,
                 "mar": 0.0,
+                "face_bbox": None,
                 "gaze_toward_person": False,
                 "is_calibrated": self.is_calibrated
             }
 
         primary = result.multi_face_landmarks[0].landmark
+        face_bbox = self._face_bbox(primary, w, h)
         yaw_raw, pitch_raw = self._head_pose(primary, w, h)
         mar = self._mouth_aspect_ratio(primary)
 
@@ -154,6 +168,7 @@ class AttentionAnalyzer:
             "yaw": round(yaw, 2),
             "pitch": round(pitch, 2),
             "mar": round(mar, 3),
+            "face_bbox": face_bbox,
             "gaze_toward_person": gaze_toward_person,
             "is_calibrated": self.is_calibrated
         }

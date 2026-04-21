@@ -26,7 +26,7 @@ class CVConfig:
     # Fatigue
     MICROSLEEP_SECONDS        = 2.0    # FASTER trigger
     SLOW_BLINK_SECONDS        = 0.45   # FASTER trigger
-    YAWN_MAR_BASE_OFFSET      = 0.26   # LOWER threshold for easier yawn detection
+    YAWN_MAR_BASE_OFFSET      = 0.35   # Raised: higher absolute MAR threshold (aligns with ratio=1.4)
     YAWN_SUSTAIN_SECONDS      = 0.3    # FASTER
     YAWN_COOLDOWN_SECONDS     = 2.0
     HEAD_BOB_THRESHOLD        = 0.03
@@ -40,12 +40,6 @@ class CVConfig:
     EYE_DROWSY_SECONDS        = 0.35
     SLEEPY_EAR_BONUS          = 15.0   # High bonus for drooping eyes
     YAWN_FATIGUE_BONUS        = 40.0   # 2 yawns = Fatigue High (>75)
-
-    # Stress
-    MAX_VALID_VELOCITY        = 0.04
-    GLITCH_COOLDOWN_FRAMES    = 6
-    STRESS_FATIGUE_DAMPING    = 0.55
-    STRESS_JITTER_SCALE       = 1200.0
 
     # Posture
     SLOUCH_PENALTY_MULT       = 0.8
@@ -100,18 +94,15 @@ class CVConfig:
     TRANSITION_DELAY_THINKING   = 3.0
     TRANSITION_DELAY_DISTRACTED = 2.5
     TRANSITION_DELAY_SOCIAL     = 4.0
-    TRANSITION_DELAY_PHONE      = 1.5
+    TRANSITION_DELAY_PHONE      = 2.0    # Longer: needs sustained evidence (was 1.5)
 
     # Scores
-    SCORE_STRESS_ELEVATED     = 75
-    SCORE_STRESS_SUSPECTED    = 45
     SCORE_FATIGUE_HIGH        = 75
     SCORE_FATIGUE_WARNING     = 45
     SCORE_POSTURE_BAD         = 30
 
     # EMA smoothing
     EMA_ALPHA_FATIGUE         = 0.08   # Slightly faster for fatigue accumulation
-    EMA_ALPHA_STRESS_TOTAL    = 0.15   # FASTER reaction to facial grimaces
     EMA_ALPHA_POSTURE         = 0.10
 
     # Temporal smoothing / stability
@@ -128,7 +119,6 @@ class CVConfig:
     ALERT_DELAY_DISTRACTED    = 12.0
     ALERT_DELAY_POSTURE       = 20.0
     ALERT_DELAY_FATIGUE       = 22.0
-    ALERT_DELAY_STRESS        = 30.0
 
     # Prevent alert spam
     ALERT_COOLDOWN_SECONDS    = 5.0

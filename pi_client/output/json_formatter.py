@@ -22,6 +22,14 @@ class JSONFormatter:
         """
         data = payload.model_dump()
         data["work_mode"] = payload.consolidated_states.work_mode
+        
+        # Explicit exposure of sub-states for backend convenience
+        data["sub_states"] = {
+            "fatigue": payload.consolidated_states.fatigue_state,
+            "posture": payload.consolidated_states.posture_state,
+            "social": payload.consolidated_states.social_state,
+            "phone": payload.consolidated_states.phone_state
+        }
 
         enriched_scores = dict(scores or {})
         if getattr(payload, "metrics", None):
@@ -72,6 +80,10 @@ class JSONFormatter:
         return {
             "timestamp": payload.timestamp,
             "state": state,
+            "sub_states": {
+                "fatigue": payload.consolidated_states.fatigue_state,
+                "posture": payload.consolidated_states.posture_state,
+            },
             "scores": {
                 "attention": round(attention_score, 1),
                 "posture": round(posture_score, 1),
@@ -80,6 +92,7 @@ class JSONFormatter:
             },
             "confidence": round(max(0.0, min(1.0, confidence)), 2),
             "phone_detected": phone_detected,
+            "alert": payload.alert.model_dump() if payload.alert.should_alert else None,
             "events": payload.events or []
         }
 

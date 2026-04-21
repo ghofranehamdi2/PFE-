@@ -28,13 +28,11 @@ class ShortWindowInference(BaseModel):
     possible_social_interaction: bool = False
     possible_phone_distraction: bool = False
     possible_fatigue: bool = False
-    possible_stress: bool = False
 
 class ConsolidatedStates(BaseModel):
     work_mode: str = "focused" # 'focused', 'focused_reading', 'focused_writing', 'thinking', 'self_explaining', 'brief_off_task', 'phone_distraction', 'social_distraction'
     attention_state: str = "focused" # 'focused', 'slightly_distracted', 'distracted'
     fatigue_state: str = "normal"  # 'normal', 'fatigue_warning', 'fatigue_high'
-    stress_state: str = "normal"   # 'normal', 'stress_suspected', 'stress_elevated'
     social_state: str = "alone"    # 'alone', 'other_person_present', 'active_interaction'
     phone_state: str = "not_detected" # 'not_detected', 'detected_not_used', 'probable_in_use'
     posture_state: str = "good"    # 'good', 'acceptable', 'poor_persistent'
@@ -44,7 +42,6 @@ class Reliability(BaseModel):
     work_mode_confidence: float = 0.0
     attention_confidence: float = 0.0
     fatigue_confidence: float = 0.0
-    stress_confidence: float = 0.0
 
 class TemporalContext(BaseModel):
     observed_for_sec: float = 0.0
@@ -52,8 +49,11 @@ class TemporalContext(BaseModel):
 
 class AlertStatus(BaseModel):
     should_alert: bool = False
-    level: str = "none" # 'none', 'low', 'medium', 'high'
+    alert_type: str = "none"   # e.g., 'fatigue', 'phone'
+    severity: str = "none"     # 'none', 'low', 'medium', 'high'
     reason: Optional[str] = None
+    confidence: float = 0.0
+    duration: float = 0.0
 
 class CVOutputPayload(BaseModel):
     session_id: str

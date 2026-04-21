@@ -33,6 +33,8 @@ MOUTH_RIGHT_CORNER  = 308
 YAW_COMPENSATION_START_DEG = 12.0   # début de la compensation
 YAW_COMPENSATION_MAX_DEG   = 35.0   # compensation maximale
 EAR_YAW_RELAX_MAX          = 0.18   # relaxation max (18%) au yaw maximum
+YAWN_MOUTH_RATIO_MIN       = 1.40  # mouth must open 40% above baseline (vs 0.75 ratio vs MAR) to count as yawn
+YAWN_FRAMES_MIN            = 22    # ~0.7s at effective FPS; filters talking bursts
 
 
 class FatigueAnalyzer:
@@ -66,6 +68,7 @@ class FatigueAnalyzer:
         self._eye_closed_start = None
         self._yawn_active      = False
         self._yawn_start       = 0.0
+        self._yawn_counter     = 0
         self._last_yawn_time   = 0.0
         self._yawn_history     = deque()
         self._yawn_count_total = 0
@@ -221,8 +224,11 @@ class FatigueAnalyzer:
         # ── Yawn ─────────────────────────────────────────────────────────────
         yawn_threshold = max(self.base_mar + config.YAWN_MAR_BASE_OFFSET,
                              self.base_mar * 1.6)
-        if mar > yawn_threshold:
-            if not self._yawn_active:
+        mouth_ratio = mar / max(self.base_mar, 1e-3)
+        yawn_candidate = (mar > yawn_threshold) and (mouth_ratio > YAWN_MOUTH_RATIO_MIN)
+        if yawn_candidate:
+            self._yawn_counter += 1
+            if self._yawn_counter > YAWN_FRAMES_MIN and not self._yawn_active:
                 self._yawn_active = True
                 self._yawn_start  = now
         else:
@@ -234,6 +240,7 @@ class FatigueAnalyzer:
                     self._yawn_history.append(now)
                     self._last_yawn_time = now
                 self._yawn_active = False
+            self._yawn_counter = 0
 
         while self._yawn_history and (now - self._yawn_history[0]) > config.YAWN_FREQ_WINDOW_SEC:
             self._yawn_history.popleft()
@@ -254,9 +261,9 @@ class FatigueAnalyzer:
         if eye_closure_deep:
             fatigue_score += 6.0
         if eye_closed:
-            fatigue_score += 15.0  # Instant UI reaction for closed eyes
+            fatigue_score += 8.0   # Reduced: avoid instant spike (was 15)
         if self._yawn_active:
-            fatigue_score += 25.0  # Instant UI reaction while yawning
+            fatigue_score += 10.0  # Reduced: in-progress yawn is a weak signal (was 25)
         if microsleep:
             fatigue_score = max(fatigue_score, 90.0)
         fatigue_score = float(np.clip(fatigue_score, 0.0, 100.0))

@@ -1,279 +1,190 @@
-# Diagramme de Classes Global - Smart Focus Assistant
+# Diagramme de Classe Global
 
-## Modèle Objet Complet du Système
+## Objectif
+Ce diagramme représente la structure logique globale du système, en alignement avec les modules réels: pi_client, backend, mobile et composant IA/RAG.
+
+## Diagramme UML (Mermaid)
 
 ```mermaid
 classDiagram
-    %% ============== ENTITÉS MÉTIER ==============
-    
-    class User {
-        -id: int
-        -email: string
-        -hashedPassword: string
-        -createdAt: datetime
-        +createSession(): Session
-        +getStatistics(): Statistics
-        +importDocument(file): void
+
+    class Utilisateur {
+        +int id
+        +string email
+        +string hashed_password
+        +datetime created_at
     }
 
-    class Session {
-        -id: int
-        -userId: int
-        -startTime: datetime
-        -endTime: datetime
-        -status: string
-        -totalFocusTime: duration
-        +recordMetrics(metrics): void
-        +triggerAlert(event): void
-        +getMetrics(): Metric[]
+    class SessionFocus {
+        +int id
+        +int user_id
+        +datetime start_time
+        +datetime end_time
+        +string status
     }
 
-    class Metric {
-        -id: int
-        -sessionId: int
-        -postureScore: float
-        -fatigueScore: float
-        -stressScore: float
-        -attentionScore: float
-        -timestamp: datetime
-        +validate(): boolean
-        +isAnomalous(): boolean
+    class MetriqueVision {
+        +int id
+        +int session_id
+        +float posture_score
+        +float fatigue_score
+        +float stress_score
+        +float attention_score
+        +datetime timestamp
     }
 
-    class Event {
-        -id: int
-        -sessionId: int
-        -type: string
-        -priority: string
-        -metadata: JSON
-        -timestamp: datetime
-        +severity(): int
-        +getAction(): string
-    }
-
-    %% ============== MODULES VISION ==============
-
-    class VisionAnalyzer {
-        -enabled: boolean
-        -model: string
-        +analyzeFrame(frame): Metric
-        +detectFatigue(frame): float
-        +detectPosture(frame): float
-        +detectStress(frame): float
-        +detectAttention(frame): float
-    }
-
-    class PostureAnalyzer {
-        -keypoints: list
-        +analyze(frame): float
-        +getRecommendation(): string
-    }
-
-    class FatigueAnalyzer {
-        -eyeClosureThreshold: float
-        +analyze(frame): float
-        +detectEyeClosure(): boolean
-    }
-
-    class StressAttentionAnalyzer {
-        -movementThreshold: float
-        +analyze(frame): float
-        +getHeadMovement(): float
-    }
-
-    %% ============== MODULE BACKEND ==============
-
-    class APIServer {
-        -host: string
-        -port: int
-        -database: Database
-        +startSession(userId): Session
-        +recordMetrics(metrics): void
-        +triggerAlert(event): void
-        +getHistoricalData(userId): Metric[]
-    }
-
-    class DecisionOrchestrator {
-        -thresholds: dict
-        -aiEngine: AIEngine
-        +evaluateMetrics(metrics): Action
-        +determineAlert(event): Recommendation
-        +adaptRecommendations(metrics, context): string
-    }
-
-    class AIEngine {
-        -llm: LLM
-        -vectorStore: VectorStore
-        -ragRetriever: RAGRetriever
-        +generateResponse(query, context): string
-        +generateStudyPlan(history): StudyPlan
-        +scoreRelevance(doc, query): float
-    }
-
-    class RAGRetriever {
-        -vectorStore: VectorStore
-        -chunkSize: int
-        +retrieveDocuments(query, topK): Document[]
-        +rankDocuments(query, candidates): Document[]
-    }
-
-    %% ============== PERSISTANCE ==============
-
-    class Database {
-        -connectionString: string
-        -pool: ConnectionPool
-        +saveSession(session): void
-        +saveMetrics(metrics): void
-        +getSessionHistory(userId): Session[]
-        +queryMetrics(filter): Metric[]
-    }
-
-    class VectorStore {
-        -client: ChromaDB
-        -collections: dict
-        +addDocuments(docs, embeddings): void
-        +searchSimilar(query, topK): Document[]
-        +deleteDocument(docId): void
-    }
-
-    class Document {
-        -id: string
-        -userId: int
-        -title: string
-        -content: string
-        -embedding: vector
-        -uploadedAt: datetime
-        +getChunks(size): string[]
-    }
-
-    %% ============== INTERFACES CLIENT ==============
-
-    class MobileApp {
-        -userId: int
-        -apiClient: APIClient
-        +displayRealTimeMetrics(): void
-        +showAlert(event): void
-        +chatWithAI(query): string
-        +viewStatistics(): void
+    class EvenementAlerte {
+        +int id
+        +int session_id
+        +string type
+        +string priority
+        +json metadata
+        +datetime timestamp
     }
 
     class PiClient {
-        -cameraManager: CameraManager
-        -analyzer: VisionAnalyzer
-        -apiClient: APIClient
-        -display: LocalDisplay
-        +captureAndAnalyze(): void
-        +sendMetricsToBackend(metrics): void
-        +handleAlert(event): void
-        +feedbackHardware(action): void
+        +start_loop()
+        +capture_frame()
+        +analyze_frame()
+        +send_metrics()
+        +handle_local_alert()
     }
 
-    class LocalDisplay {
-        -screen: Device
-        +showAlert(type, severity): void
-        +displayMetrics(metric): void
-        +clearScreen(): void
+    class VisionPipeline {
+        +compute_scores(frame)
+        +merge_scores()
     }
 
-    %% ============== RECOMMENDATIONS ==============
-
-    class Recommendation {
-        -type: string
-        -priority: int
-        -content: string
-        -basedOnScores: Metric
-        +display(): string
-        +execute(): void
+    class PostureAnalyzer {
+        +analyze(frame)
     }
 
-    class StudyPlan {
-        -userId: int
-        -generatedAt: datetime
-        -sessions: StudySession[]
-        +adjustToDifficulty(level): void
-        +synchronizeWithMetrics(metric): void
+    class FatigueAnalyzer {
+        +analyze(frame)
     }
 
-    class StudySession {
-        -startTime: time
-        -duration: int
-        -subject: string
-        -difficulty: string
-        +canAdjust(newDuration): boolean
+    class StressAnalyzer {
+        +analyze(frame)
     }
 
-    %% ============== ASSOCIATIONS ==============
+    class AttentionAnalyzer {
+        +analyze(frame)
+    }
 
-    User "1" --> "*" Session : owns
-    User "1" --> "*" Document : uploads
-    
-    Session "1" --> "*" Metric : contains
-    Session "1" --> "*" Event : triggers
-    
-    Metric --> VisionAnalyzer : produced by
-    VisionAnalyzer --> PostureAnalyzer : uses
-    VisionAnalyzer --> FatigueAnalyzer : uses
-    VisionAnalyzer --> StressAttentionAnalyzer : uses
-    
-    APIServer "1" --> "1" Database : uses
-    APIServer "1" --> "1" DecisionOrchestrator : uses
-    APIServer "1" --> "1" AIEngine : uses
-    
-    DecisionOrchestrator --> Recommendation : generates
-    
-    AIEngine "1" --> "1" RAGRetriever : uses
-    AIEngine "1" --> "1" VectorStore : queries
-    
-    VectorStore "1" --> "*" Document : manages
-    VectorStore "1" --> "*" RAGRetriever : serves
-    
-    Database "1" --> "*" Session : stores
-    Database "1" --> "*" User : manages
-    
-    MobileApp --> APIServer : consumes
-    PiClient --> APIServer : consumes
-    
-    PiClient "1" --> "1" VisionAnalyzer : uses
-    PiClient "1" --> "1" LocalDisplay : controls
-    
-    Recommendation --> StudyPlan : suggests
-    StudyPlan "1" --> "*" StudySession : contains
+    class DecisionEngine {
+        +evaluate_thresholds(metrics)
+        +create_alert(metrics)
+    }
 
-    %% ============== STYLES ==============
-    style User fill:#e1f5ff
-    style Session fill:#e3f2fd
-    style Metric fill:#f3e5f5
-    style Event fill:#fce4ec
-    style VisionAnalyzer fill:#fff3e0
-    style PostureAnalyzer fill:#fff9c4
-    style APIServer fill:#e0f2f1
-    style Database fill:#f1f8e9
-    style VectorStore fill:#e8f5e9
-    style MobileApp fill:#fbe9e7
-    style PiClient fill:#ffe0b2
+    class LocalFeedbackController {
+        +display_alert(message)
+        +led_feedback(level)
+        +vibration_feedback(level)
+    }
+
+    class FastAPIApp {
+        +start_session(payload)
+        +ingest_metrics(payload)
+        +create_event(payload)
+        +get_dashboard(user_id)
+    }
+
+    class SessionService {
+        +create_session(user)
+        +close_session(session)
+    }
+
+    class MetricsService {
+        +save_metrics(metrics)
+        +aggregate_metrics(session)
+    }
+
+    class AlertService {
+        +save_event(event)
+        +notify_clients(event)
+    }
+
+    class AIService {
+        +chat(question, context)
+        +generate_plan(user_context)
+    }
+
+    class RAGService {
+        +index_document(doc)
+        +retrieve_context(question)
+    }
+
+    class LLMProvider {
+        +complete(prompt)
+    }
+
+    class Repository {
+        +save(entity)
+        +find_by_id(id)
+        +find_all(filters)
+    }
+
+    class Database {
+        +connect()
+        +transaction()
+    }
+
+    class VectorStore {
+        +upsert_embeddings(chunks)
+        +search_similar(query)
+    }
+
+    class MobileApp {
+        +show_realtime_dashboard()
+        +show_history()
+        +chat_with_ai()
+        +show_study_plan()
+    }
+
+    Utilisateur "1" --> "*" SessionFocus : possede
+    SessionFocus "1" --> "*" MetriqueVision : contient
+    SessionFocus "1" --> "*" EvenementAlerte : declenche
+
+    PiClient --> VisionPipeline : utilise
+    VisionPipeline --> PostureAnalyzer : compose
+    VisionPipeline --> FatigueAnalyzer : compose
+    VisionPipeline --> StressAnalyzer : compose
+    VisionPipeline --> AttentionAnalyzer : compose
+    PiClient --> DecisionEngine : utilise
+    PiClient --> LocalFeedbackController : controle
+
+    PiClient --> FastAPIApp : envoie API
+    MobileApp --> FastAPIApp : consomme API
+
+    FastAPIApp --> SessionService : delegue
+    FastAPIApp --> MetricsService : delegue
+    FastAPIApp --> AlertService : delegue
+    FastAPIApp --> AIService : delegue
+
+    SessionService --> Repository : utilise
+    MetricsService --> Repository : utilise
+    AlertService --> Repository : utilise
+    Repository --> Database : persiste
+
+    AIService --> RAGService : utilise
+    AIService --> LLMProvider : utilise
+    RAGService --> VectorStore : interroge
 ```
 
-## Hiérarchie et Dépendances
+## Couches UML Globales
 
-### Couches Identifiées
+| Couche | Eléments |
+|---|---|
+| Présentation | MobileApp, PiClient, LocalFeedbackController |
+| Métier | VisionPipeline, DecisionEngine, SessionService, MetricsService, AlertService, AIService |
+| Accès Données | Repository, Database, VectorStore |
+| Domaine | Utilisateur, SessionFocus, MetriqueVision, EvenementAlerte |
 
-1. **Couche Présentation** : `MobileApp`, `PiClient`, `LocalDisplay`
-2. **Couche Métier** : `APIServer`, `DecisionOrchestrator`, `VisionAnalyzer`, `AIEngine`
-3. **Couche Persistance** : `Database`, `VectorStore`, `Document`
-4. **Couche Modèle** : `User`, `Session`, `Metric`, `Event`, `Recommendation`
+## Flux Principal Résumé
 
-### Flux Principal
-
-```
-PiClient (capture) 
-  ↓
-VisionAnalyzer (analyse)
-  ↓
-APIServer (traite)
-  ↓
-DecisionOrchestrator (évalue)
-  ↓
-AIEngine + RAGRetriever (contexte)
-  ↓
-Recommendation (affichage mobile & pi)
-```
+1. PiClient capture le flux vidéo.
+2. VisionPipeline calcule les scores via les analyzers spécialisés.
+3. DecisionEngine détermine alertes et priorités.
+4. FastAPIApp persiste les données via les services et repositories.
+5. MobileApp visualise historique et temps réel.
+6. AIService enrichit la recommandation via RAGService et LLMProvider.
