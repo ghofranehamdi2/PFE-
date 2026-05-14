@@ -9,10 +9,10 @@ import numpy as np
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 PHONE_CLASS_ID       = 67      # COCO: "cell phone"
-MIN_CONFIDENCE       = 0.15    # LOWERED for better recall
+MIN_CONFIDENCE       = 0.35    # Increased to avoid detecting empty hands as phones
 MIN_ASPECT_RATIO     = 0.7     # More permissive
 MAX_ASPECT_RATIO     = 8.0     
-MIN_REL_AREA         = 0.0003  # LOWERED - detects even smaller phones
+MIN_REL_AREA         = 0.005   # Increased (approx 1500 pixels) to ensure phone is in the active workspace
 MAX_REL_AREA         = 0.35    
 
 class PhoneDetector:

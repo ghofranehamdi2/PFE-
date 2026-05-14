@@ -14,7 +14,8 @@ class CVConfig:
     # =========================================================================
 
     # Attention / Gaze
-    YAW_DISTRACT_THRESH_DEG   = 30.0   # Slightly more tolerant
+    YAW_DISTRACT_THRESH_DEG   = 35.0   # More tolerant (was 30)
+    YAW_TOLERANCE_CENTER      = 18.0   # Tolerate natural head movements
     YAW_READING_THRESH_DEG    = 18.0
     PITCH_DOWN_THRESH_DEG     = 20.0
     PITCH_UP_THRESH_DEG       = 24.0
@@ -40,6 +41,17 @@ class CVConfig:
     EYE_DROWSY_SECONDS        = 0.35
     SLEEPY_EAR_BONUS          = 15.0   # High bonus for drooping eyes
     YAWN_FATIGUE_BONUS        = 40.0   # 2 yawns = Fatigue High (>75)
+
+    # Fatigue Factors (Weights)
+    WEIGHT_FATIGUE_EYES       = 0.50   # EAR, PERCLOS, Slow blinks
+    WEIGHT_FATIGUE_YAWN       = 0.20   # Yawning frequency
+    WEIGHT_FATIGUE_POSTURE    = 0.15   # Relapsed posture
+    WEIGHT_FATIGUE_BEHAVIOR   = 0.15   # Hands on knees, immobility
+    
+    # State Thresholds
+    SCORE_FATIGUE_DROWSY      = 85     # Critical
+    SCORE_FATIGUE_HEAVY       = 65     # Fatigued
+    SCORE_FATIGUE_LIGHT       = 40     # Slightly Fatigued
 
     # Posture
     SLOUCH_PENALTY_MULT       = 0.8
@@ -97,18 +109,20 @@ class CVConfig:
     TRANSITION_DELAY_PHONE      = 2.0    # Longer: needs sustained evidence (was 1.5)
 
     # Scores
-    SCORE_FATIGUE_HIGH        = 75
-    SCORE_FATIGUE_WARNING     = 45
+    SCORE_FATIGUE_HIGH        = 80     # Equivalent to Drowsy
+    SCORE_FATIGUE_WARNING     = 50     # Equivalent to Fatigued
     SCORE_POSTURE_BAD         = 30
 
     # EMA smoothing
     EMA_ALPHA_FATIGUE         = 0.08   # Slightly faster for fatigue accumulation
+    EMA_ALPHA_FATIGUE_DECAY   = 0.015  # Slow decay for fatigue memory (hysteresis)
     EMA_ALPHA_POSTURE         = 0.10
 
     # Temporal smoothing / stability
     # Buffer length target: 30–60 frames (at 30fps, 2.0s ≈ 60 frames)
-    SMOOTHING_WINDOW_SECONDS  = 2.0
-    MIN_STATE_DWELL_SECONDS   = 2.0
+    SMOOTHING_WINDOW_SECONDS  = 2.5    # Increased for more stability
+    MIN_STATE_DWELL_SECONDS   = 3.0    # 3 seconds minimum before major state change
+    DISTRACTION_WINDOW_SEC    = 4.0    # Window to confirm deep distraction
 
     # =========================================================================
     # LEVEL 4: Alerts (Strict Conservative Policy)

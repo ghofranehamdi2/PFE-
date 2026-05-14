@@ -18,7 +18,7 @@ def simulate_real_case(case_name, sequence_steps):
         start_t = 10000.0
         mock_time.return_value = start_t
         engine = TemporalEngine(session_id=str(uuid4()))
-        fps = engine.fps
+        fps = config.TARGET_FPS
         
         payload = None
         current_t = start_t
@@ -30,11 +30,17 @@ def simulate_real_case(case_name, sequence_steps):
         pos = {"slouch_score": 0.0, "tilt_score": 0.0, "fwd_score": 0.0, "lean_score": 0.0, "hands_on_knees": False, "hand_near_face": False}
         phone = {"phone_found": False}
 
-        from output.score_engine import ScoreEngine
+        from engine.smart_scoring import ScoreEngine, AttentionScorer, VigilanceScorer, PostureScorer, FatigueModulator
         from output.json_formatter import JSONFormatter
         
-        score_engine = ScoreEngine()
+        attention = AttentionScorer()
+        vigilance = VigilanceScorer()
+        posture = PostureScorer()
+        fatigue = FatigueModulator()
+        score_engine = ScoreEngine(attention, vigilance, posture, fatigue)
         formatter = JSONFormatter()
+        
+        fatigue.start_session()
 
         for duration, overrides in sequence_steps:
             # Apply overrides to defaults for this step
@@ -47,12 +53,25 @@ def simulate_real_case(case_name, sequence_steps):
             frames = int(duration * fps)
             for _ in range(frames):
                 mock_time.return_value = current_t
-                payload = engine.process(att, fat, stress, pos, phone)
+                payload = engine.process(att, fat, pos, phone)
                 current_t += 1.0 / fps
         
-        posture_for_scores = float(getattr(payload, "metrics", {}).get("posture_score", pos.get("posture_score", 70)) or 70.0)
-        scores = score_engine.compute_all(payload.consolidated_states, raw_posture_score=posture_for_scores)
-        scores["fatigue_score"] = float(getattr(payload, "metrics", {}).get("fatigue_score", 0.0) or 0.0)
+        yaw = att.get("yaw", 0.0)
+        pitch = att.get("pitch", 0.0)
+        ear = fat.get("ear", 0.30)
+        spine_angle = pos.get("forward_inclination_deg", 0.0)
+        left_sh_y = pos.get("left_sh_y", 100.0)
+        right_sh_y = pos.get("right_sh_y", 100.0)
+        sh_width = pos.get("sh_width", 50.0)
+        blink_rate = fat.get("yawn_frequency_per_min", 15.0)
+        phone_detected = phone.get("phone_found", False)
+        phone_confidence = 0.85 if phone_detected else 0.0
+
+        scores = score_engine.compute_all(
+            yaw=yaw, pitch=pitch, ear=ear,
+            spine_angle=spine_angle, left_sh_y=left_sh_y, right_sh_y=right_sh_y, sh_width=sh_width,
+            blink_rate=blink_rate, phone_detected=phone_detected, phone_confidence=phone_confidence
+        )
 
         clean_frame = formatter.format_clean_frame(payload, scores)
         final_json = formatter.format_snapshot(payload, scores, clean_frame=clean_frame)

@@ -1,0 +1,304 @@
+<mxfile host="app.diagrams.net" modified="2026-05-10T00:00:00.000Z" agent="13.0" etag="vision_score_refined" version="13.0" type="device">
+  <diagram id="vision_score_module" name="Vision &amp; Score Module">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" background="ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- System boundary -->
+        <mxCell id="boundary" value="SmartFocus - Sprint Vision &amp; Score" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=none;strokeColor=000000;strokeWidth=2;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="1100" height="700" as="geometry"/>
+        </mxCell>
+        
+        <!-- Actors -->
+        <mxCell id="actor_student" value="Étudiant" style="shape=umlActor;verticalAlign=bottom;html=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="350" width="30" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="actor_iot" value="Système IoT" style="shape=umlActor;verticalAlign=bottom;html=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="150" width="30" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="actor_ml" value="Service ML" style="shape=umlActor;verticalAlign=bottom;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="350" width="30" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Authentification -->
+        <mxCell id="pkg_auth" value="Authentification" style="shape=folder;html=1;fontStyle=2;tabWidth=120;fillColor=#e1d5e7;strokeColor=9673a6" vertex="1" parent="1">
+          <mxGeometry x="100" y="100" width="140" height="50" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_auth" value="S'authentifier" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="110" y="130" width="120" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Session & Initialisation -->
+        <mxCell id="pkg_session" value="Session &amp; Init" style="shape=folder;html=1;fontStyle=2;tabWidth=100;fillColor=#e1d5e7;strokeColor=9673a6" vertex="1" parent="1">
+          <mxGeometry x="270" y="100" width="150" height="110" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_start_session" value="Démarrer session" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="280" y="115" width="130" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_init_sensors" value="Initialiser capteurs" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="280" y="155" width="130" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_load_model" value="Charger YOLOv8" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="280" y="195" width="130" height="35" as="geometry"/>
+        </mxCell>
+        
+        <!-- Vision - Détection -->
+        <mxCell id="pkg_vision" value="Vision - Détection" style="shape=folder;html=1;fontStyle=2;tabWidth=110;fillColor=#e1d5e7;strokeColor=9673a6" vertex="1" parent="1">
+          <mxGeometry x="470" y="100" width="150" height="150" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_capture" value="Capturer vidéo" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="480" y="115" width="130" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_detect_face" value="Détecter visage" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="480" y="155" width="130" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_analyze_posture" value="Analyser posture" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="480" y="195" width="130" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_detect_distraction" value="Détecter distractions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="480" y="195" width="130" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_vigilance" value="Évaluer vigilance" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="480" y="230" width="130" height="35" as="geometry"/>
+        </mxCell>
+        
+        <!-- Calcul du Score -->
+        <mxCell id="pkg_score" value="Calcul du Score" style="shape=folder;html=1;fontStyle=2;tabWidth=100;fillColor=#e1d5e7;strokeColor=9673a6" vertex="1" parent="1">
+          <mxGeometry x="670" y="100" width="160" height="140" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_score_posture" value="Score posture" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="680" y="115" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_score_vigilance" value="Score vigilance" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="680" y="155" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_score_focus" value="Score focus global" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="680" y="195" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_score_composite" value="Score composite" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=d6b656" vertex="1" parent="1">
+          <mxGeometry x="680" y="235" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <!-- Alertes -->
+        <mxCell id="pkg_alerts" value="Alertes" style="shape=folder;html=1;fontStyle=2;tabWidth=60;fillColor=#e1d5e7;strokeColor=9673a6" vertex="1" parent="1">
+          <mxGeometry x="880" y="100" width="160" height="110" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_alert_posture" value="Alerte posture" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=ff6666" vertex="1" parent="1">
+          <mxGeometry x="890" y="115" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_alert_vigilance" value="Alerte vigilance" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=ff6666" vertex="1" parent="1">
+          <mxGeometry x="890" y="155" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_alert_distraction" value="Alerte distraction" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=ff6666" vertex="1" parent="1">
+          <mxGeometry x="890" y="195" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <!-- App Mobile -->
+        <mxCell id="pkg_mobile" value="App Mobile" style="shape=folder;html=1;fontStyle=2;tabWidth=90;fillColor=#e1d5e7;strokeColor=9673a6" vertex="1" parent="1">
+          <mxGeometry x="100" y="320" width="160" height="110" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_mobile_app" value="App Mobile Temps Réel" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ccffcc;strokeColor=66cc66" vertex="1" parent="1">
+          <mxGeometry x="110" y="335" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_vis_scores" value="Visualiser scores" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ccffcc;strokeColor=66cc66" vertex="1" parent="1">
+          <mxGeometry x="110" y="375" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_charts" value="Graphiques tendance" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ccffcc;strokeColor=66cc66" vertex="1" parent="1">
+          <mxGeometry x="110" y="415" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <!-- Statistiques -->
+        <mxCell id="pkg_stats" value="Statistiques" style="shape=folder;html=1;fontStyle=2;tabWidth=90;fillColor=#e1d5e7;strokeColor=9673a6" vertex="1" parent="1">
+          <mxGeometry x="330" y="320" width="160" height="110" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_save_session" value="Sauvegarder données" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5ff;strokeColor=9966ff" vertex="1" parent="1">
+          <mxGeometry x="340" y="335" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_history" value="Historique sessions" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5ff;strokeColor=9966ff" vertex="1" parent="1">
+          <mxGeometry x="340" y="375" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_statistics" value="Générer statistiques" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5ff;strokeColor=9966ff" vertex="1" parent="1">
+          <mxGeometry x="340" y="415" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <!-- Conseils -->
+        <mxCell id="pkg_advice" value="Conseils" style="shape=folder;html=1;fontStyle=2;tabWidth=60;fillColor=#e1d5e7;strokeColor=9673a6" vertex="1" parent="1">
+          <mxGeometry x="560" y="320" width="160" height="110" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_ergo_advice" value="Conseils ergonomiques" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffcc;strokeColor=cccc00" vertex="1" parent="1">
+          <mxGeometry x="570" y="335" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="uc_breaks" value="Recommander pauses" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffcc;strokeColor=cccc00" vertex="1" parent="1">
+          <mxGeometry x="570" y="375" width="140" height="35" as="geometry"/>
+        </mxCell>
+        
+        <!-- Actors to UCs connections -->
+        
+        <!-- Student to main UCs -->
+        <mxCell id="conn_student_auth" edge="1" parent="1" source="actor_student" target="uc_auth">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_student_start" edge="1" parent="1" source="actor_student" target="uc_start_session">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_student_mobile" edge="1" parent="1" source="actor_student" target="uc_mobile_app">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_student_history" edge="1" parent="1" source="actor_student" target="uc_history">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- IoT to sensors -->
+        <mxCell id="conn_iot_sensors" edge="1" parent="1" source="actor_iot" target="uc_init_sensors">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_iot_capture" edge="1" parent="1" source="actor_iot" target="uc_capture">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- ML to detection -->
+        <mxCell id="conn_ml_load" edge="1" parent="1" source="actor_ml" target="uc_load_model">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_ml_face" edge="1" parent="1" source="actor_ml" target="uc_detect_face">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_ml_posture" edge="1" parent="1" source="actor_ml" target="uc_analyze_posture">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_ml_score" edge="1" parent="1" source="actor_ml" target="uc_score_focus">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Include relationships -->
+        <mxCell id="conn_auth_start" edge="1" parent="1" source="uc_auth" target="uc_start_session" style="dashed=1;dashPattern=3 3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_start_init" edge="1" parent="1" source="uc_start_session" target="uc_init_sensors" style="dashed=1;dashPattern=3 3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_start_model" edge="1" parent="1" source="uc_start_session" target="uc_load_model" style="dashed=1;dashPattern=3 3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_start_capture" edge="1" parent="1" source="uc_start_session" target="uc_capture" style="dashed=1;dashPattern=3 3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Vision flow -->
+        <mxCell id="conn_capture_face" edge="1" parent="1" source="uc_capture" target="uc_detect_face" style="dashed=1;dashPattern=3 3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_face_posture" edge="1" parent="1" source="uc_detect_face" target="uc_analyze_posture" style="dashed=1;dashPattern=3 3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_face_vigilance" edge="1" parent="1" source="uc_detect_face" target="uc_vigilance" style="dashed=1;dashPattern=3 3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Score calculation -->
+        <mxCell id="conn_posture_score" edge="1" parent="1" source="uc_analyze_posture" target="uc_score_posture">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_vigilance_score" edge="1" parent="1" source="uc_vigilance" target="uc_score_vigilance">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_scores_focus" edge="1" parent="1" source="uc_score_posture" target="uc_score_focus" style="dashed=1;dashPattern=3 3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_vigilance_focus" edge="1" parent="1" source="uc_score_vigilance" target="uc_score_focus" style="dashed=1;dashPattern=3 3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_focus_composite" edge="1" parent="1" source="uc_score_focus" target="uc_score_composite">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Alerts -->
+        <mxCell id="conn_posture_alert" edge="1" parent="1" source="uc_score_posture" target="uc_alert_posture">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_vigilance_alert" edge="1" parent="1" source="uc_score_vigilance" target="uc_alert_vigilance">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Mobile app -->
+        <mxCell id="conn_focus_mobile" edge="1" parent="1" source="uc_score_focus" target="uc_mobile_app">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_alerts_mobile" edge="1" parent="1" source="uc_alert_posture" target="uc_mobile_app">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_alerts_vigilance_mobile" edge="1" parent="1" source="uc_alert_vigilance" target="uc_mobile_app">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Statistics -->
+        <mxCell id="conn_mobile_save" edge="1" parent="1" source="uc_mobile_app" target="uc_save_session">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_save_history" edge="1" parent="1" source="uc_save_session" target="uc_history">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_history_stats" edge="1" parent="1" source="uc_history" target="uc_statistics">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Advice -->
+        <mxCell id="conn_posture_advice" edge="1" parent="1" source="uc_score_posture" target="uc_ergo_advice">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="conn_advice_mobile" edge="1" parent="1" source="uc_ergo_advice" target="uc_mobile_app">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

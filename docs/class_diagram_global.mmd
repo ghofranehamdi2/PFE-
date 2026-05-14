@@ -1,0 +1,120 @@
+classDiagram
+    %% Core Module
+    class User {
+        +int id
+        +string email
+        +string full_name
+        +string hashed_password
+        +login()
+        +logout()
+    }
+
+    class UserProfile {
+        +int daily_focus_goal
+        +string preferred_schedule
+        +bool notif_enabled
+    }
+
+    class WorkSession {
+        +string id (UUID)
+        +datetime start_time
+        +datetime end_time
+        +bool is_active
+        +json summary
+    }
+
+    class Snapshot {
+        +datetime timestamp
+        +float attention_score
+        +float posture_score
+        +float global_focus_score
+        +string work_mode
+    }
+
+    %% Learning Module (RAG & Gamification)
+    class ChatDocument {
+        +string filename
+        +string file_path
+        +string chroma_collection
+        +int page_count
+    }
+
+    class Quiz {
+        +string title
+        +int num_questions
+        +int score
+        +datetime completed_at
+    }
+
+    class Flashcard {
+        +string front
+        +string back
+        +float ease_factor
+        +int interval
+        +datetime next_review
+    }
+
+    %% Organization & Health
+    class PlanningEvent {
+        +string title
+        +datetime start_time
+        +datetime end_time
+        +string category
+    }
+
+    class SleepRecord {
+        +datetime sleep_time
+        +datetime wake_time
+        +float quality_score
+        +int deep_sleep_minutes
+    }
+
+    %% Relationships
+    User "1" -- "1" UserProfile : possède
+    User "1" -- "0..*" WorkSession : effectue
+    WorkSession "1" -- "0..*" Snapshot : contient
+    
+    User "1" -- "0..*" ChatDocument : uploade
+    ChatDocument "1" -- "0..*" Quiz : génère
+    ChatDocument "1" -- "0..*" Flashcard : génère
+    
+    User "1" -- "0..*" PlanningEvent : organise
+    User "1" -- "0..*" SleepRecord : enregistre
+useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>

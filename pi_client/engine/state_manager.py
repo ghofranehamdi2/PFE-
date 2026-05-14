@@ -24,12 +24,14 @@ class StateManager:
         
         # 1. Determine Target Sub-states (Raw Observations for hysteresis)
         
-        # Fatigue target
+        # Fatigue target (Progressive Levels)
         ema_fat = smoothed_scores["ema_fatigue"]
-        if ema_fat >= config.SCORE_FATIGUE_HIGH:
-            target_fat = "fatigue_high"
-        elif ema_fat >= config.SCORE_FATIGUE_WARNING:
-            target_fat = "fatigue_warning"
+        if ema_fat >= config.SCORE_FATIGUE_DROWSY:
+            target_fat = "drowsy"
+        elif ema_fat >= config.SCORE_FATIGUE_HEAVY:
+            target_fat = "fatigued"
+        elif ema_fat >= config.SCORE_FATIGUE_LIGHT:
+            target_fat = "slightly_fatigued"
         else:
             target_fat = "normal"
             
@@ -48,16 +50,32 @@ class StateManager:
         phone_sig = smoothed_scores["phone"]
         target_phone = "probable_in_use" if phone_sig > 0.45 else "not_detected"
         
-        # Distraction target
+        # Distraction target (Progressive Levels)
         dist_sig = smoothed_scores["distracted"]
-        target_dist = "distraction" if dist_sig > 0.35 else "focused"
+        if dist_sig > 0.55:
+            target_dist = "distracted"
+        elif dist_sig > 0.25:
+            target_dist = "slightly_distracted"
+        else:
+            target_dist = "focused"
+
+        # Task target (Reading / Writing)
+        read_sig = smoothed_scores["reading"]
+        write_sig = smoothed_scores["writing"]
+        if read_sig > 0.45 and read_sig > write_sig:
+            target_task = "reading"
+        elif write_sig > 0.45:
+            target_task = "writing"
+        else:
+            target_task = "general"
 
         # 2. Apply Hysteresis (Enter vs Exit delays)
         observations = {
             "fatigue": target_fat,
             "posture": target_pos,
             "phone": target_phone,
-            "distraction": target_dist
+            "distraction": target_dist,
+            "task": target_task
         }
         
         self.current_states = self.hysteresis.process(now, observations)

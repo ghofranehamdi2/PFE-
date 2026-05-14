@@ -14,7 +14,7 @@ Ouvrez un **premier terminal** et exécutez ces commandes :
 
 ```powershell
 # Aller dans le dossier du projet
-cd d:\PFE\backend
+cd d:\PFE\backend 
 
 # Activer l'environnement virtuel et lancer le serveur
 .\backend_venv\Scripts\activate

@@ -1,0 +1,121 @@
+useCaseDiagram
+    actor "Étudiant" as student
+    actor "Système IoT" as iot
+    actor "Service ML" as ml_service
+    
+    package SmartFocus {
+        package "Authentification" {
+            usecase "S'authentifier" as UC_Auth
+        }
+        
+        package "Session & Initialisation" {
+            usecase "Démarrer une session de travail" as UC_StartSession
+            usecase "Initialiser les capteurs" as UC_InitSensors
+            usecase "Charger le modèle YOLOv8" as UC_LoadModel
+        }
+        
+        package "Vision - Détection" {
+            usecase "Capturer flux vidéo" as UC_CaptureVideo
+            usecase "Détecter le visage" as UC_DetectFace
+            usecase "Analyser la posture" as UC_AnalyzePosture
+            usecase "Détecter les distractions" as UC_DetectDistraction
+            usecase "Évaluer la vigilance" as UC_EvaluateVigilance
+        }
+        
+        package "Calcul du Score" {
+            usecase "Calculer le score posture" as UC_ScorePosture
+            usecase "Calculer le score vigilance" as UC_ScoreVigilance
+            usecase "Calculer le score de focus global" as UC_ScoreFocus
+            usecase "Générer le score composite" as UC_ScoreComposite
+        }
+        
+        package "Alertes en Temps Réel" {
+            usecase "Déclencher alerte posture" as UC_AlertPosture
+            usecase "Déclencher alerte vigilance" as UC_AlertVigilance
+            usecase "Déclencher alerte distraction" as UC_AlertDistraction
+        }
+        
+        package "App Mobile - Visualisation" {
+            usecase "Afficher l'app mobile temps réel" as UC_MobileApp
+            usecase "Visualiser les scores en direct" as UC_VisScores
+            usecase "Afficher les graphiques de tendance" as UC_Charts
+        }
+        
+        package "Statistiques & Historique" {
+            usecase "Sauvegarder les données de session" as UC_SaveSession
+            usecase "Consulter l'historique des sessions" as UC_History
+            usecase "Générer des statistiques" as UC_Statistics
+            usecase "Analyser les tendances" as UC_Trends
+        }
+        
+        package "Conseils & Améliorations" {
+            usecase "Générer des conseils ergonomiques" as UC_ErgoAdvice
+            usecase "Recommander des pauses" as UC_Breaks
+        }
+    }
+    
+    %% Relations Étudiant
+    student --> UC_Auth
+    student --> UC_StartSession
+    student --> UC_MobileApp
+    student --> UC_History
+    student --> UC_Statistics
+    student --> UC_Trends
+    
+    %% Relations IoT
+    iot --> UC_InitSensors
+    iot --> UC_CaptureVideo
+    
+    %% Relations Service ML
+    ml_service --> UC_LoadModel
+    ml_service --> UC_DetectFace
+    ml_service --> UC_AnalyzePosture
+    ml_service --> UC_DetectDistraction
+    ml_service --> UC_EvaluateVigilance
+    ml_service --> UC_ScorePosture
+    ml_service --> UC_ScoreVigilance
+    ml_service --> UC_ScoreFocus
+    
+    %% Flux de session
+    UC_Auth ..> UC_StartSession : <<include>>
+    UC_StartSession ..> UC_InitSensors : <<include>>
+    UC_StartSession ..> UC_LoadModel : <<include>>
+    UC_StartSession ..> UC_CaptureVideo : <<include>>
+    
+    %% Flux vision
+    UC_CaptureVideo ..> UC_DetectFace : <<include>>
+    UC_DetectFace ..> UC_AnalyzePosture : <<include>>
+    UC_DetectFace ..> UC_DetectDistraction : <<include>>
+    UC_DetectFace ..> UC_EvaluateVigilance : <<include>>
+    
+    %% Flux calcul scores
+    UC_AnalyzePosture --> UC_ScorePosture : génère
+    UC_EvaluateVigilance --> UC_ScoreVigilance : génère
+    UC_ScorePosture ..> UC_ScoreFocus : <<include>>
+    UC_ScoreVigilance ..> UC_ScoreFocus : <<include>>
+    UC_ScoreFocus --> UC_ScoreComposite : génère
+    
+    %% Flux alertes
+    UC_ScorePosture --> UC_AlertPosture : déclenche si seuil
+    UC_ScoreVigilance --> UC_AlertVigilance : déclenche si seuil
+    UC_DetectDistraction --> UC_AlertDistraction : déclenche
+    
+    %% Flux app mobile
+    UC_ScoreFocus --> UC_MobileApp : affiche
+    UC_ScoreComposite --> UC_VisScores : affiche
+    UC_AlertPosture --> UC_MobileApp : notifie
+    UC_AlertVigilance --> UC_MobileApp : notifie
+    UC_AlertDistraction --> UC_MobileApp : notifie
+    
+    %% Flux historique et stats
+    UC_MobileApp --> UC_SaveSession : collecte
+    UC_SaveSession --> UC_History : enregistre
+    UC_History --> UC_Statistics : génère
+    UC_Statistics --> UC_Charts : visualise
+    UC_Statistics --> UC_Trends : analyse
+    
+    %% Flux conseils
+    UC_ScorePosture --> UC_ErgoAdvice : peut générer
+    UC_ScoreVigilance --> UC_Breaks : peut générer
+    UC_ErgoAdvice --> UC_MobileApp : affiche
+    UC_Breaks --> UC_MobileApp : affiche

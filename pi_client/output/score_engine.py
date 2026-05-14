@@ -14,12 +14,18 @@ class ScoreEngine:
             "vigilance": 0.30
         }
 
-    def compute_all(self, states: ConsolidatedStates, raw_posture_score: float = None) -> dict:
+    def compute_all(self, states: ConsolidatedStates, raw_posture_score: float = None, raw_fatigue_score: float = None) -> dict:
         """Computes all scores and the global focus score."""
         
         attention_score = self._get_attention_score(states.work_mode)
         posture_score = raw_posture_score if raw_posture_score is not None else self._get_posture_score(states.posture_state)
-        vigilance_score = self._get_vigilance_score(states.fatigue_state)
+        
+        if raw_fatigue_score is not None:
+            # Fatigue is 0-100, Vigilance is its inverse
+            vigilance_score = max(0.0, min(100.0, 100.0 - raw_fatigue_score))
+        else:
+            vigilance_score = self._get_vigilance_score(states.fatigue_state)
+            
         distraction = self._get_distraction_score(states.work_mode)
         phone_risk = self._get_phone_risk(states.work_mode)
         
@@ -35,10 +41,8 @@ class ScoreEngine:
             (vigilance_score * self.weights["vigilance"])
         ) * (1.0 - focus_penalty)
         
-        # Session score calculation
-        session_score = self._compute_session_score(
-            attention_score, posture_score, vigilance_score, phone_risk
-        )
+        # Unified score for the snapshot and the session
+        final_score = round(max(0, global_focus), 2)
         
         return {
             "attention_score": round(attention_score, 2),
@@ -46,8 +50,8 @@ class ScoreEngine:
             "vigilance_score": round(vigilance_score, 2),
             "distraction_score": round(distraction, 2),
             "phone_risk_score": round(phone_risk, 2),
-            "focus_score_global": round(max(0, global_focus), 2),
-            "session_score": round(session_score, 2)
+            "focus_score_global": final_score,
+            "session_score": final_score
         }
 
     def _get_attention_score(self, work_mode: str) -> float:
@@ -55,31 +59,36 @@ class ScoreEngine:
             "focused": 100.0,
             "focused_reading": 100.0,
             "focused_writing": 100.0,
-            "thinking": 85.0,
+            "thinking": 90.0,
             # Talking alone can be self-explaining (still on-task).
-            "self_explaining": 90.0,
-            "brief_off_task": 30.0,
-            "phone_distraction": 0.0,
-            "social_distraction": 0.0
+            "self_explaining": 85.0,
+            "brief_off_task": 60.0,
+            "slightly_distracted": 50.0,
+            "distracted": 10.0,
+            "phone_distraction": 10.0,
+            "social_distraction": 20.0
         }
         return mapping.get(work_mode, 50.0)
 
     def _get_posture_score(self, posture_state: str) -> float:
         mapping = {
             "good": 100.0,
-            "acceptable": 60.0,
-            "poor_persistent": 0.0
+            "acceptable": 85.0,
+            "poor_persistent": 40.0
         }
         return mapping.get(posture_state, 50.0)
 
     def _get_vigilance_score(self, fatigue_state: str) -> float:
         mapping = {
             "normal": 100.0,
+            "slightly_fatigued": 80.0,
+            "fatigued": 50.0,
+            "drowsy": 10.0,
+            # Legacy mapping compatibility
             "fatigue_warning": 50.0,
-            "fatigue_high": 0.0
+            "fatigue_high": 10.0
         }
         return mapping.get(fatigue_state, 50.0)
-
 
     def _get_distraction_score(self, work_mode: str) -> float:
         mapping = {
@@ -107,11 +116,11 @@ class ScoreEngine:
     def _compute_session_score(self, attention: float, posture: float, 
                                vigilance: float, phone_risk: float) -> float:
         """Calculates the global session score (0-100)."""
-        # Weights: attention is dominant (65%), posture (17.5%), vigilance (17.5%)
+        # Weights: 45% Attention, 30% Vigilance, 25% Posture
         base_score = (
-            (attention * 0.45) +
-            (posture * 0.25) +
-            (vigilance * 0.30)
+            (attention * self.weights["attention"]) +
+            (posture * self.weights["posture"]) +
+            (vigilance * self.weights["vigilance"])
         )
         
         # Penalties for risk factors

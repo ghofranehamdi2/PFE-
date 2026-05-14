@@ -64,14 +64,16 @@ class JSONFormatter:
         state = JSONFormatter._map_work_mode_to_state(payload.consolidated_states.work_mode)
         confidence = float(getattr(payload.reliability, "work_mode_confidence", 0.0) or 0.0)
 
-        posture_score = float(metrics.get("posture_score", scores.get("posture_score", 0.0)) or 0.0)
-        fatigue_score = float(metrics.get("fatigue_score", 0.0) or 0.0)
-        attention_score = float(scores.get("attention_score", 0.0) or 0.0)
-
-        # Conservative distraction score: use whichever is higher (discrete vs. risk)
-        discrete_distraction = float(scores.get("distraction_score", 0.0) or 0.0)
-        distraction_risk = float(metrics.get("distraction_risk", 0.0) or 0.0)
-        distraction_score = max(discrete_distraction, distraction_risk)
+        concentration = float(scores.get("concentration", 0.0))
+        
+        posture_raw = scores.get("posture")
+        posture = float(posture_raw) if posture_raw is not None else None
+        
+        fatigue = float(scores.get("fatigue", 0.0))
+        distraction = float(scores.get("distraction", 0.0))
+        focus_global = float(scores.get("focus_global", 0.0))
+        
+        posture_available = scores.get("posture_available", False)
 
         phone_detected = bool(payload.instant_observations.phone_detected) or (
             payload.consolidated_states.phone_state != "not_detected"
@@ -85,13 +87,15 @@ class JSONFormatter:
                 "posture": payload.consolidated_states.posture_state,
             },
             "scores": {
-                "attention": round(attention_score, 1),
-                "posture": round(posture_score, 1),
-                "fatigue": round(fatigue_score, 1),
-                "distraction": round(distraction_score, 1)
+                "concentration": round(concentration, 1),
+                "posture": round(posture, 1) if posture is not None else None,
+                "fatigue": round(fatigue, 1),
+                "distraction": round(distraction, 1),
+                "focus_global": round(focus_global, 1)
             },
             "confidence": round(max(0.0, min(1.0, confidence)), 2),
             "phone_detected": phone_detected,
+            "posture_available": posture_available,
             "alert": payload.alert.model_dump() if payload.alert.should_alert else None,
             "events": payload.events or []
         }

@@ -1,0 +1,255 @@
+<mxfile host="app.diagrams.net" modified="2026-05-10T00:00:00.000Z" agent="13.0" etag="vision_score_refined" version="13.0" type="device">
+  <diagram id="vision_score_module" name="Vision &amp; Score Module Refined">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" background="ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Title -->
+        <mxCell id="title" value="Smart Focus - Module Vision &amp; Calcul du Score (Sprint)" style="text;fontSize=16;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="50" y="20" width="1300" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- External Actor -->
+        <mxCell id="actor_student" value="👤 Étudiant" style="shape=umlActor;verticalAlign=bottom;html=1;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="400" width="40" height="80" as="geometry"/>
+        </mxCell>
+        
+        <!-- System Boundary -->
+        <mxCell id="boundary" value="SmartFocus System" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=none;strokeColor=000000;strokeWidth=3;dashed=0;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="80" width="1250" height="760" as="geometry"/>
+        </mxCell>
+        
+        <!-- ============ MODULE VISION ============ -->
+        <mxCell id="module_vision_bg" value="MODULE VISION - Détection &amp; Analyse" style="rounded=1;fillColor=#e3f2fd;strokeColor=#1976d2;strokeWidth=2;fontSize=11;fontStyle=1;align=left;verticalAlign=top;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="120" y="120" width="380" height="380" as="geometry"/>
+        </mxCell>
+        
+        <!-- Vision - Input -->
+        <mxCell id="vision_input" value="📹 Flux Vidéo" style="rounded=1;fillColor=#fff3e0;strokeColor=#f57c00;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="140" y="150" width="110" height="50" as="geometry"/>
+        </mxCell>
+        
+        <!-- Vision - Detection Steps -->
+        <mxCell id="vision_detect_face" value="🔍 Détection\nVisage" style="rounded=1;fillColor=#e8f5e9;strokeColor=#388e3c;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="140" y="230" width="110" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="vision_landmarks" value="📍 Points de\nRéférence" style="rounded=1;fillColor=#e8f5e9;strokeColor=#388e3c;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="280" y="230" width="110" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Vision - Analysis -->
+        <mxCell id="vision_posture" value="🧍 Analyse\nPosture" style="rounded=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="140" y="320" width="110" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="vision_fatigue" value="😴 Analyse\nFatigue" style="rounded=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="280" y="320" width="110" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="vision_distraction" value="📱 Détection\nDistraction" style="rounded=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="140" y="410" width="110" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="vision_stress" value="😰 Détection\nStress" style="rounded=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="280" y="410" width="110" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Vision Outputs -->
+        <mxCell id="vision_output" value="📊 Données Vision" style="rounded=1;fillColor=#fce4ec;strokeColor=#c2185b;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="200" y="485" width="150" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Vision flow arrows -->
+        <mxCell id="arrow_input_face" edge="1" parent="1" source="vision_input" target="vision_detect_face">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_face_landmarks" edge="1" parent="1" source="vision_detect_face" target="vision_landmarks">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_landmarks_posture" edge="1" parent="1" source="vision_landmarks" target="vision_posture">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_landmarks_fatigue" edge="1" parent="1" source="vision_landmarks" target="vision_fatigue">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_posture_distraction" edge="1" parent="1" source="vision_posture" target="vision_distraction">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_fatigue_stress" edge="1" parent="1" source="vision_fatigue" target="vision_stress">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_distraction_output" edge="1" parent="1" source="vision_distraction" target="vision_output">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_stress_output" edge="1" parent="1" source="vision_stress" target="vision_output">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- ============ MODULE SCORE ============ -->
+        <mxCell id="module_score_bg" value="MODULE SCORE - Calcul &amp; Agrégation" style="rounded=1;fillColor=#f3e5f5;strokeColor=#7b1fa2;strokeWidth=2;fontSize=11;fontStyle=1;align=left;verticalAlign=top;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="540" y="120" width="420" height="380" as="geometry"/>
+        </mxCell>
+        
+        <!-- Score - Inputs from Vision -->
+        <mxCell id="score_input_vision" value="📊 Données Vision" style="rounded=1;fillColor=#fce4ec;strokeColor=#c2185b;strokeWidth=2;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="150" width="140" height="50" as="geometry"/>
+        </mxCell>
+        
+        <!-- Score Calculations -->
+        <mxCell id="score_posture_calc" value="⚙️ Calcul Score\nPosture" style="rounded=1;fillColor=#fff3e0;strokeColor=#f57c00;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="560" y="240" width="130" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="score_vigilance_calc" value="⚙️ Calcul Score\nVigilance" style="rounded=1;fillColor=#fff3e0;strokeColor=#f57c00;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="730" y="240" width="130" height="60" as="geometry"/>
+        </mxCell>
+        
+        <!-- Score Aggregation -->
+        <mxCell id="score_focus_calc" value="🎯 Calcul Score\nFocus Global" style="rounded=1;fillColor=#fff9c4;strokeColor=#fbc02d;strokeWidth=2;fontSize=10;align=center;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="340" width="140" height="70" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="score_composite" value="📈 Score\nComposite" style="rounded=1;fillColor=#fff9c4;strokeColor=#fbc02d;strokeWidth=2;fontSize=10;align=center;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="750" y="340" width="110" height="70" as="geometry"/>
+        </mxCell>
+        
+        <!-- Score Output -->
+        <mxCell id="score_output" value="✅ Scores Finaux" style="rounded=1;fillColor=#c8e6c9;strokeColor=#2e7d32;strokeWidth=2;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="440" width="200" height="50" as="geometry"/>
+        </mxCell>
+        
+        <!-- Score flow arrows -->
+        <mxCell id="arrow_vision_score" edge="1" parent="1" source="vision_output" target="score_input_vision">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_score_input_posture" edge="1" parent="1" source="score_input_vision" target="score_posture_calc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_score_input_vigilance" edge="1" parent="1" source="score_input_vision" target="score_vigilance_calc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_posture_focus" edge="1" parent="1" source="score_posture_calc" target="score_focus_calc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_vigilance_focus" edge="1" parent="1" source="score_vigilance_calc" target="score_focus_calc">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_focus_composite" edge="1" parent="1" source="score_focus_calc" target="score_composite">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_focus_output" edge="1" parent="1" source="score_focus_calc" target="score_output">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_composite_output" edge="1" parent="1" source="score_composite" target="score_output">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- ============ ALERTES ============ -->
+        <mxCell id="module_alerts_bg" value="MODULE ALERTES" style="rounded=1;fillColor=#ffebee;strokeColor=#d32f2f;strokeWidth=2;fontSize=11;fontStyle=1;align=left;verticalAlign=top;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="120" width="320" height="200" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="alert_posture" value="⚠️ Alerte\nPosture" style="rounded=1;fillColor=#ffcdd2;strokeColor=#d32f2f;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="150" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="alert_fatigue" value="⚠️ Alerte\nFatigue" style="rounded=1;fillColor=#ffcdd2;strokeColor=#d32f2f;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="150" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="alert_distraction" value="⚠️ Alerte\nDistraction" style="rounded=1;fillColor=#ffcdd2;strokeColor=#d32f2f;strokeWidth=2;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="230" width="100" height="60" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_score_alert_posture" edge="1" parent="1" source="score_output" target="alert_posture" style="strokeDasharray=5,5;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_score_alert_fatigue" edge="1" parent="1" source="score_output" target="alert_fatigue" style="strokeDasharray=5,5;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_score_alert_distraction" edge="1" parent="1" source="score_output" target="alert_distraction" style="strokeDasharray=5,5;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- ============ APP MOBILE ============ -->
+        <mxCell id="module_app_bg" value="APP MOBILE" style="rounded=1;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontSize=11;fontStyle=1;align=left;verticalAlign=top;spacing=5;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="360" width="320" height="140" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="app_dashboard" value="📱 Visualisation Temps Réel" style="rounded=1;fillColor=#c8e6c9;strokeColor=#2e7d32;strokeWidth=2;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="385" width="280" height="40" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="app_stats" value="📊 Historique &amp; Statistiques" style="rounded=1;fillColor=#c8e6c9;strokeColor=#2e7d32;strokeWidth=2;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="440" width="280" height="40" as="geometry"/>
+        </mxCell>
+        
+        <!-- Arrows to Mobile App -->
+        <mxCell id="arrow_alert_app" edge="1" parent="1" source="alert_posture" target="app_dashboard">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_score_app" edge="1" parent="1" source="score_output" target="app_dashboard" style="strokeDasharray=5,5;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_app_history" edge="1" parent="1" source="app_dashboard" target="app_stats">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Actor connections -->
+        <mxCell id="arrow_student_input" edge="1" parent="1" source="actor_student" target="vision_input">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="arrow_student_app" edge="1" parent="1" source="actor_student" target="app_dashboard">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend_title" value="LÉGENDE" style="text;fontSize=11;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="120" y="530" width="100" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="legend_flow" value="→ Flux principal" style="text;fontSize=9;align=left;" vertex="1" parent="1">
+          <mxGeometry x="120" y="555" width="150" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="legend_data" value="⟶ Transfert de données (optionnel)" style="text;fontSize=9;align=left;strokeDasharray=5,5;" vertex="1" parent="1">
+          <mxGeometry x="120" y="580" width="200" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="legend_input_output" value="📹 Input/Output du système" style="text;fontSize=9;align=left;" vertex="1" parent="1">
+          <mxGeometry x="350" y="555" width="200" height="20" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="legend_processing" value="⚙️ Traitement/Calcul" style="text;fontSize=9;align=left;" vertex="1" parent="1">
+          <mxGeometry x="350" y="580" width="200" height="20" as="geometry"/>
+        </mxCell>
+        
+        <!-- Notes -->
+        <mxCell id="notes" value="📝 Notes:&#10;• Le flux vidéo provient de la caméra du Raspberry Pi (IoT interne, pas acteur externe)&#10;• Les scores sont calculés en temps réel par le service ML&#10;• Les alertes sont générées si seuils dépassés&#10;• L'App Mobile affiche et persiste les données&#10;• Seul l'Étudiant est acteur externe" style="text;fontSize=8;align=left;fillColor=#fffde7;strokeColor=#f57f17;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="610" width="1230" height="100" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

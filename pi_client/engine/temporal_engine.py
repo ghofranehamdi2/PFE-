@@ -30,17 +30,23 @@ class TemporalEngine:
         self.state_manager = StateManager()
         self.alert_manager = AlertManager()
         
-        # Persistence for work mode (legacy compatibility)
+        # Persistence for work mode and distraction
         self._state_start = time.time()
-        self._gaze_away_start: float | None = None
-        self._GAZE_DISTRACT_SUSTAIN = 3.0
+        self._distraction_acc: float = 0.0
+        self._last_time = time.time()
 
     def _head_direction(self, yaw: float, pitch: float) -> str:
+        # Use a more tolerant center zone to avoid micro-movements triggering distraction
         if yaw > config.YAW_DISTRACT_THRESH_DEG: return "right"
         if yaw < -config.YAW_DISTRACT_THRESH_DEG: return "left"
         if pitch > config.PITCH_UP_THRESH_DEG: return "up"
         if pitch < -config.PITCH_DOWN_THRESH_DEG: return "down"
-        return "frontal"
+        
+        # Buffer zone: if within tolerance, consider it frontal
+        if abs(yaw) < config.YAW_TOLERANCE_CENTER and abs(pitch) < config.YAW_TOLERANCE_CENTER:
+            return "frontal"
+            
+        return "frontal_relaxed"
 
     def process(self, att: dict, fat: dict, pos: dict, phone: dict) -> CVOutputPayload:
         now = time.time()
@@ -68,6 +74,27 @@ class TemporalEngine:
         is_tilting = abs(yaw) > 18.0 or abs(pitch) > 18.0 or float(pos.get("tilt_score", 1.0)) < 0.85
         
         # Extraction logic
+        # A. Fatigue Multi-factor calculation (L2)
+        eye_fatigue = float(fat.get("fatigue_score", 0.0)) # Already includes perclos/blinks
+        yawn_freq   = float(fat.get("yawn_frequency_per_min", 0.0))
+        yawn_sig    = min(1.0, yawn_freq / 2.0) * 100.0    # 2 yawns/min = 100% signal
+        
+        posture_sig = max(0.0, 100.0 - posture_raw)        # Low posture score = high fatigue signal
+        
+        # Behavioral signals
+        hands_knee = bool(pos.get("hands_on_knees", False))
+        behavior_sig = 0.0
+        if hands_knee: behavior_sig += 60.0
+        if not face_present: behavior_sig += 20.0 # Just in case
+        
+        # Weighted Fusion
+        fatigue_unified = (
+            (eye_fatigue  * config.WEIGHT_FATIGUE_EYES) +
+            (yawn_sig     * config.WEIGHT_FATIGUE_YAWN) +
+            (posture_sig  * config.WEIGHT_FATIGUE_POSTURE) +
+            (behavior_sig * config.WEIGHT_FATIGUE_BEHAVIOR)
+        )
+        
         raw_evidence = {
             "reading_ev": config.WEIGHT_READING_PITCH_DOWN if head_dir == "down" else 0.0,
             "writing_ev": config.WEIGHT_WRITING_PITCH_DOWN if head_dir == "down" else 0.0,
@@ -76,7 +103,7 @@ class TemporalEngine:
             "social_ev": 1.0 if num_faces >= 2 else 0.0,
             "phone_ev": 0.8 if phone_found else 0.0,
             "distracted_ev": 0.0, # Computed below
-            "fatigue_sig": float(fat.get("fatigue_score", 0.0)),
+            "fatigue_sig": fatigue_unified,
             "posture_raw": posture_raw
         }
         
@@ -84,13 +111,36 @@ class TemporalEngine:
         if hand_face and is_tilting:
             raw_evidence["phone_ev"] = max(raw_evidence["phone_ev"], 0.75 if phone_found else 0.45)
             
-        # Gaze Distraction Logic
-        if head_dir in ("left", "right", "up", "down") and not phone_found and num_faces < 2:
-            if self._gaze_away_start is None: self._gaze_away_start = now
-            if (now - self._gaze_away_start) >= self._GAZE_DISTRACT_SUSTAIN:
-                raw_evidence["distracted_ev"] = 0.4
+        # Time delta
+        dt = min(now - self._last_time, 0.5)
+        self._last_time = now
+
+        # Gaze Distraction Logic (Refined: Progressive Spatial & Temporal Accumulator)
+        # Distraction is triggered if looking AWAY from the workspace (Left, Right, Up)
+        # Looking DOWN is considered "Desk/Notes" and is part of the focus zone.
+        is_looking_away = head_dir in ("left", "right", "up")
+        
+        # We don't accumulate basic distraction if it's a social or phone event
+        if is_looking_away and not phone_found and num_faces < 2:
+            # Build distraction time (Max bounded)
+            self._distraction_acc = min(self._distraction_acc + dt, config.DISTRACTION_WINDOW_SEC * 1.5)
         else:
-            self._gaze_away_start = None
+            # Decay the distraction memory (Decays 1.5x faster than it builds)
+            # This prevents a quick glance at the screen from resetting a 5-second stare
+            self._distraction_acc = max(self._distraction_acc - dt * 1.5, 0.0)
+            
+        # Progressive evidence based on the accumulated duration
+        if self._distraction_acc >= config.DISTRACTION_WINDOW_SEC: 
+            raw_evidence["distracted_ev"] = 0.80 # Confirmed Deep Distraction
+        elif self._distraction_acc >= config.DISTRACTION_WINDOW_SEC * 0.4:
+            raw_evidence["distracted_ev"] = 0.45 # Slightly Distracted
+        else:
+            raw_evidence["distracted_ev"] = 0.0
+            
+        # Task Evidence: Looking DOWN contributes to Reading/Writing focus
+        if head_dir == "down":
+            raw_evidence["reading_ev"] = config.WEIGHT_READING_PITCH_DOWN
+            raw_evidence["writing_ev"] = config.WEIGHT_WRITING_PITCH_DOWN
 
         smoothed_scores = self.score_manager.compute_scores(raw_evidence)
 
@@ -99,14 +149,28 @@ class TemporalEngine:
 
         # 4. GLOBAL STATE FUSION (Using stable sub-states from hysteresis)
         active_tags = []
-        if sub_states["fatigue"] != "normal":
-            active_tags.append(sub_states["fatigue"])
+        if sub_states["fatigue"] == "drowsy":
+            active_tags.append("drowsy")
+        elif sub_states["fatigue"] == "fatigued":
+            active_tags.append("fatigued")
+        elif sub_states["fatigue"] == "slightly_fatigued":
+            active_tags.append("slightly_fatigued")
+            
         if sub_states["posture"] == "poor_persistent":
             active_tags.append("poor_posture")
         if sub_states["phone"] == "probable_in_use":
             active_tags.append("phone_detected")
-        if sub_states["distraction"] == "distraction":
-            active_tags.append("distraction")
+        if sub_states["distraction"] == "distracted":
+            active_tags.append("distracted")
+        elif sub_states["distraction"] == "slightly_distracted":
+            active_tags.append("slightly_distracted")
+        
+        # Workspace Task Tags
+        if sub_states.get("task") == "reading":
+            active_tags.append("reading")
+        elif sub_states.get("task") == "writing":
+            active_tags.append("writing")
+            
         if num_faces >= 2:
             active_tags.append("social_interaction")
         

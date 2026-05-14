@@ -16,7 +16,7 @@ from engine.temporal_engine import TemporalEngine
 from engine.score_smoother import ScoreSmoother
 from output.api_client import APIClient
 from output.json_formatter import JSONFormatter
-from output.score_engine import ScoreEngine
+from engine.smart_scoring import ScoreEngine, ConcentrationScorer, PostureScorer, FatigueModulator
 from ui.minimal_ui import MinimalUI
 
 
@@ -75,7 +75,10 @@ class SmartFocusPipelineV3:
         self.engine = TemporalEngine(self.session_id)
 
         # Output
-        self.score_engine = ScoreEngine()
+        self.conc_scorer = ConcentrationScorer()
+        self.pos_scorer = PostureScorer()
+        self.fat_mod = FatigueModulator()
+        self.score_engine = ScoreEngine(self.conc_scorer, self.pos_scorer, self.fat_mod)
         self.formatter = JSONFormatter()
         self.api_client = APIClient(base_url=backend_url)
         self.tracker = SessionTracker(session_id=self.session_id)
@@ -140,6 +143,8 @@ class SmartFocusPipelineV3:
             self.api_client.ensure_session(self.session_id)
 
         self._open_output_files()
+
+        self.fat_mod.start_session()
 
         if self.ui:
             self.ui.open(width=960, height=540)
@@ -216,16 +221,40 @@ class SmartFocusPipelineV3:
                     self._runtime_start = time.time()
                     self._last_emit = 0.0
 
+                yaw = att_result.get("yaw", 0.0)
+                pitch = att_result.get("pitch", 0.0)
+                ear = fat_result.get("ear", 0.30)
+                spine_angle = self._last_posture.get("spine_angle", 0.0)
+                left_sh_y = self._last_posture.get("left_shoulder_y", 100.0)
+                right_sh_y = self._last_posture.get("right_shoulder_y", 100.0)
+                sh_width = self._last_posture.get("shoulder_width", 50.0)
+                pose_available = self._last_posture.get("pose_available", False)
+                phone_detected = self._last_phone.get("phone_found", False)
+                phone_confidence = 0.85 if phone_detected else 0.0
+
+                scores = self.score_engine.compute_all(
+                    yaw=yaw, pitch=pitch, ear=ear,
+                    spine_angle=spine_angle, left_sh_y=left_sh_y, right_sh_y=right_sh_y, sh_width=sh_width,
+                    phone_detected=phone_detected, phone_confidence=phone_confidence,
+                    pose_available=pose_available
+                )
+                self._last_ui_scores = scores
+
+                # Correct L1 inputs with calibration baseline so TemporalEngine doesn't falsely trigger distraction
+                att_result_corr = att_result.copy()
+                if self.score_engine.calibrator.is_ready:
+                    att_result_corr["yaw"] = yaw - self.score_engine.calibrator.yaw_baseline
+                    att_result_corr["pitch"] = pitch - self.score_engine.calibrator.pitch_baseline
+
                 # L2/L3/L4 processing (Smoothed L1 inputs)
                 payload = self.engine.process(
-                    att=self.att_smoother.smooth(att_result),
+                    att=self.att_smoother.smooth(att_result_corr),
                     fat=self.fat_smoother.smooth(fat_result),
                     pos=self.pos_smoother.smooth(self._last_posture),
                     phone=self._last_phone,
                 )
 
                 # Adaptive Sampling Strategy
-                # Stability check: unstable if not focused, alert active, or state is fresh
                 is_focused = payload.consolidated_states.work_mode == "focused"
                 alert_active = payload.alert.should_alert
                 state_stable_sec = payload.temporal_context.stable_state_for_sec if payload.temporal_context else 0.0
@@ -241,12 +270,6 @@ class SmartFocusPipelineV3:
                 # Emit outputs on adaptive interval or immediate event
                 if event_triggered or (now - self._last_emit) >= current_interval:
                     self._last_emit = now
-
-                    posture_for_scores = float(payload.metrics.get("posture_score", 70.0) or 70.0)
-                    scores = self.score_engine.compute_all(payload.consolidated_states, raw_posture_score=posture_for_scores)
-                    # Provide continuous fatigue into the score bag (used by UI debug + session output)
-                    scores["fatigue_score"] = float(payload.metrics.get("fatigue_score", 0.0) or 0.0)
-                    self._last_ui_scores = scores
 
                     clean_frame = self.formatter.format_clean_frame(payload, scores)
                     self.tracker.add_frame(clean_frame)

@@ -58,8 +58,10 @@ class ScoreManager:
         self._push_signal("social", raw_data.get("social_ev", 0.0))
         self._push_signal("distracted", raw_data.get("distracted_ev", 0.0))
 
-        # 2. Update EMA scores
-        self.ema_fatigue = self._push_ema(self.ema_fatigue, raw_data.get("fatigue_sig", 0.0), config.EMA_ALPHA_FATIGUE)
+        # 2. Update EMA scores (Asymmetric for fatigue to ensure slow decay)
+        raw_fat = raw_data.get("fatigue_sig", 0.0)
+        alpha_fat = config.EMA_ALPHA_FATIGUE if raw_fat >= self.ema_fatigue else config.EMA_ALPHA_FATIGUE_DECAY
+        self.ema_fatigue = self._push_ema(self.ema_fatigue, raw_fat, alpha_fat)
         self.ema_posture = self._push_ema(self.ema_posture, raw_data.get("posture_raw", 100.0), config.EMA_ALPHA_POSTURE)
 
         return {

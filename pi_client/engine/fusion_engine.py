@@ -10,14 +10,19 @@ class FusionEngine:
     Follows a strict priority hierarchy to avoid state oscillation and inconsistent reporting.
     """
     
-    # Priority definition (Higher index = Higher priority)
-    # Priority: fatigue_critical > phone_distraction > social_distraction > posture_issue > focused
+    # Priority: drowsy > phone > social > distracted > fatigued > slightly_fatigued > reading/writing > posture > focused
     PRIORITY_MAP = {
-        "focused":            0,
-        "posture_issue":      1,
-        "social_distraction": 2,
-        "phone_distraction":  3,
-        "fatigue_critical":   4
+        "focused":             0,
+        "posture_issue":       1,
+        "reading":             2,
+        "writing":             2,
+        "slightly_distracted": 3,
+        "distracted":          4,
+        "slightly_fatigued":   5,
+        "social_distraction":  6,
+        "fatigued":            7,
+        "phone_distraction":   8,
+        "drowsy":              9
     }
 
     @staticmethod
@@ -40,9 +45,13 @@ class FusionEngine:
         for s in sub_states:
             s = s.lower()
             
-            # Fatigue Mapping
-            if "fatigue_high" in s or "microsleep" in s:
-                normalized_states.append("fatigue_critical")
+            # Fatigue Mapping (New 4-tier logic)
+            if "drowsy" in s or "microsleep" in s or "fatigue_high" in s:
+                normalized_states.append("drowsy")
+            elif "slightly_fatigued" in s:
+                normalized_states.append("slightly_fatigued")
+            elif "fatigued" in s or "fatigue_warning" in s:
+                normalized_states.append("fatigued")
             
             # Phone Mapping
             elif "phone" in s:
@@ -52,16 +61,25 @@ class FusionEngine:
             elif "social" in s or "person" in s or "interaction" in s:
                 normalized_states.append("social_distraction")
             
+            # Distraction Mapping
+            elif "slightly_distracted" in s:
+                normalized_states.append("slightly_distracted")
+            elif "distracted" in s:
+                normalized_states.append("distracted")
+            
+            # Task Mapping
+            elif "reading" in s:
+                normalized_states.append("reading")
+            elif "writing" in s:
+                normalized_states.append("writing")
+            
             # Posture Mapping
             elif "posture" in s or "slouch" in s:
                 normalized_states.append("posture_issue")
             
-            # Distraction Mapping (as social/phone is already handled, gazes are usually social/phone)
-            elif "gaze_away" in s or "distracted" in s:
-                # Distraction without phone/social defaults to general distraction 
-                # (represented here under the social/phone umbrella or as a separate lower prio if needed)
-                # But per requirements, let's stick to the requested 5 states.
-                normalized_states.append("social_distraction") 
+            # Legacy Distraction Mapping
+            elif "gaze_away" in s:
+                normalized_states.append("distracted") 
 
         if not normalized_states:
             return "focused"

@@ -144,7 +144,12 @@ class PostureAnalyzer:
                 "forward_inclination_deg": 0.0,
                 "lateral_inclination_deg": 0.0,
                 "posture_score": 0.0,
-                "bad_posture_confirmed": False
+                "bad_posture_confirmed": False,
+                "left_shoulder_y": 0.0,
+                "right_shoulder_y": 0.0,
+                "shoulder_width": 0.0,
+                "spine_angle": 0.0,
+                "pose_available": False
             }
 
         lm = result.pose_landmarks.landmark
@@ -180,6 +185,11 @@ class PostureAnalyzer:
                 "lateral_inclination_deg": 0.0,
                 "posture_score": 70.0,
                 "bad_posture_confirmed": False,
+                "left_shoulder_y": ls.y,
+                "right_shoulder_y": rs.y,
+                "shoulder_width": sw,
+                "spine_angle": 0.0,
+                "pose_available": False
             }
 
         shoulder_mid, hip_mid, forward_deg, lateral_deg = self._spine_metrics(ls, rs, lh, rh)
@@ -243,5 +253,10 @@ class PostureAnalyzer:
             "forward_inclination_deg": round(forward_deg, 2),
             "lateral_inclination_deg": round(lateral_deg, 2),
             "posture_score": round(posture_score, 1),
-            "bad_posture_confirmed": bad_posture_confirmed
+            "bad_posture_confirmed": bad_posture_confirmed,
+            "left_shoulder_y": float(ls.y),
+            "right_shoulder_y": float(rs.y),
+            "shoulder_width": float(sw),
+            "spine_angle": round(inclination_deg, 2),
+            "pose_available": True
         }

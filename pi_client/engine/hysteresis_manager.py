@@ -3,8 +3,8 @@ from typing import Dict, Any
 
 class HysteresisState:
     """
-    Handles asymmetric state transitions (Enter vs Exit delays).
-    Ensures a state is only entered after enter_sec, and only exited after exit_sec.
+    Handles asymmetric state transitions using a cumulative confidence (leaky bucket) approach.
+    This prevents a single positive/negative frame from resetting the entire transition timer.
     """
     
     def __init__(self, initial_state: str, enter_sec: float, exit_sec: float):
@@ -14,32 +14,40 @@ class HysteresisState:
         self.exit_sec = exit_sec
         
         self._candidate_state: str = initial_state
-        self._candidate_start_time: float = 0.0
+        self._confidence: float = 0.0
+        self._last_time: float = 0.0
 
     def update(self, now: float, observed_state: str) -> str:
-        # If observed match current, reset any pending candidate
+        dt = now - self._last_time if self._last_time > 0 else 0.0
+        self._last_time = now
+        dt = min(dt, 0.5) # Cap dt to avoid huge jumps on lags
+
+        # If observed match current stable state, reset candidate and confidence
         if observed_state == self.current_state:
             self._candidate_state = observed_state
-            self._candidate_start_time = 0.0
+            self._confidence = 0.0
             return self.current_state
 
-        # If observed state changed from the current candidate, start new timer
+        # If observed state is different from our current candidate being built
         if observed_state != self._candidate_state:
-            self._candidate_state = observed_state
-            self._candidate_start_time = now
+            # Decay confidence instead of instant reset (Memory of recent events)
+            self._confidence -= dt * 2.0  # Decays twice as fast as it builds
+            if self._confidence <= 0.0:
+                self._candidate_state = observed_state
+                self._confidence = 0.0
             return self.current_state
 
-        # We have a stable candidate different from current. Check duration.
-        elapsed = now - self._candidate_start_time
+        # We are observing the candidate state. Build confidence.
+        self._confidence += dt
         
         # Asymmetric thresholds
         # If we are in 'default' and going to 'something else' -> use enter_sec
         # If we are in 'something else' and going to 'default' -> use exit_sec
         threshold = self.exit_sec if observed_state == self.default_state else self.enter_sec
         
-        if elapsed >= threshold:
+        if self._confidence >= threshold:
             self.current_state = observed_state
-            self._candidate_start_time = 0.0
+            self._confidence = 0.0
             
         return self.current_state
 

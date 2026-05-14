@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2025-05-11T14:23:45Z" agent="Vision+Score Pipeline UML" version="24.4.0" type="device">
+  <diagram name="Vision Score Class Diagram" id="class-diagram">
+    <mxGraphModel dx="1400" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ============ MODELS ============ -->
+        <mxCell id="model-cvoutput" value="CVOutputPayload" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e1f5ff;strokeColor=#01579b;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="750" y="50" width="280" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="model-cvoutput-attr" value="+ timestamp: str&#xa;+ session_id: str&#xa;+ frame_index: int&#xa;+ l1_observations: dict&#xa;+ l2_scores: dict&#xa;+ l3_substates: dict&#xa;+ l4_global_state: str&#xa;+ l5_alerts: list" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="model-cvoutput">
+          <mxGeometry y="26" width="280" height="174" as="geometry" />
+        </mxCell>
+
+        <!-- ============ L1 ANALYZERS ============ -->
+        <!-- AttentionAnalyzer -->
+        <mxCell id="l1-attention" value="AttentionAnalyzer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e8f5e9;strokeColor=#1b5e20;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="350" width="260" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-attention-attr" value="- face_mesh: FaceMesh&#xa;- is_calibrated: bool&#xa;- base_yaw: float&#xa;- base_pitch: float&#xa;- _cam_matrix: ndarray&#xa;- _dist_coeffs: ndarray" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l1-attention">
+          <mxGeometry y="26" width="260" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-attention-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="l1-attention">
+          <mxGeometry y="130" width="260" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-attention-methods" value="+ calibrate(yaw, pitch) → bool&#xa;+ analyze(image, calibrating) → dict&#xa;- _head_pose(landmarks) → (yaw, pitch)&#xa;- _mouth_aspect_ratio(landmarks) → float&#xa;- _face_center_x(landmarks) → float&#xa;- _face_bbox(landmarks, w, h) → tuple" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l1-attention">
+          <mxGeometry y="131" width="260" height="129" as="geometry" />
+        </mxCell>
+
+        <!-- FatigueAnalyzer -->
+        <mxCell id="l1-fatigue" value="FatigueAnalyzer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e8f5e9;strokeColor=#1b5e20;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="350" y="350" width="260" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-fatigue-attr" value="- face_mesh: FaceMesh&#xa;- is_calibrated: bool&#xa;- base_ear: float&#xa;- ear_threshold: float&#xa;- _perclos_window: deque&#xa;- _yawn_active: bool&#xa;- _yawn_counter: int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l1-fatigue">
+          <mxGeometry y="26" width="260" height="124" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-fatigue-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="l1-fatigue">
+          <mxGeometry y="150" width="260" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-fatigue-methods" value="+ calibrate(ear, mar, pitch) → bool&#xa;+ analyze(image, yaw) → dict&#xa;- _ear(landmarks, indices) → float&#xa;- _mar(landmarks) → float&#xa;- _yaw_compensated_threshold(base, yaw) → float&#xa;- _detect_yawning(mar) → bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l1-fatigue">
+          <mxGeometry y="151" width="260" height="129" as="geometry" />
+        </mxCell>
+
+        <!-- PostureAnalyzer -->
+        <mxCell id="l1-posture" value="PostureAnalyzer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e8f5e9;strokeColor=#1b5e20;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="650" y="350" width="260" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-posture-attr" value="- pose: Pose&#xa;- is_calibrated: bool&#xa;- base_vdist: float&#xa;- base_shoulder_width: float&#xa;- base_neck_angle: float&#xa;- _bad_history: deque" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l1-posture">
+          <mxGeometry y="26" width="260" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-posture-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="l1-posture">
+          <mxGeometry y="140" width="260" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-posture-methods" value="+ calibrate(landmarks) → bool&#xa;+ analyze(image) → dict&#xa;- _check_hands_on_knees(lm, sw) → bool&#xa;- _check_hand_near_face(lm, sw) → bool&#xa;- _compute_posture_score(lm) → float&#xa;- _check_slouch(lm) → float" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l1-posture">
+          <mxGeometry y="141" width="260" height="139" as="geometry" />
+        </mxCell>
+
+        <!-- PhoneDetector -->
+        <mxCell id="l1-phone" value="PhoneDetector" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e8f5e9;strokeColor=#1b5e20;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="950" y="350" width="260" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-phone-attr" value="- model: YOLO&#xa;- confidence_threshold: float&#xa;- skip_frames: int&#xa;- frame_count: int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l1-phone">
+          <mxGeometry y="26" width="260" height="84" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-phone-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="l1-phone">
+          <mxGeometry y="110" width="260" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l1-phone-methods" value="+ analyze(image) → dict&#xa;- _detect_phone_yolo(image) → (bool, float)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l1-phone">
+          <mxGeometry y="111" width="260" height="89" as="geometry" />
+        </mxCell>
+
+        <!-- ============ L2 SCORE MANAGER ============ -->
+        <mxCell id="l2-score" value="ScoreManager" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#f3e5f5;strokeColor=#4a148c;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="50" y="700" width="320" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="l2-score-attr" value="- fps: float&#xa;- smooth_len: int&#xa;- _signals: dict[str, float]&#xa;- _buffers: dict[str, deque]&#xa;- ema_fatigue: float&#xa;- ema_posture: float" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l2-score">
+          <mxGeometry y="26" width="320" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="l2-score-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="l2-score">
+          <mxGeometry y="140" width="320" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l2-score-methods" value="+ compute_scores(raw_data: dict) → dict&#xa;- _push_signal(key: str, value: float) → None&#xa;- _push_ema(current: float, val: float, alpha) → float&#xa;- _update_smoothing(key) → float" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l2-score">
+          <mxGeometry y="141" width="320" height="119" as="geometry" />
+        </mxCell>
+
+        <!-- ============ L3 STATE MANAGER ============ -->
+        <mxCell id="l3-hysteresis" value="HysteresisManager" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#fff3e0;strokeColor=#e65100;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="700" width="300" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="l3-hysteresis-attr" value="- _timers: dict[str, float]&#xa;- _validated_states: dict[str, bool]&#xa;- _delays: dict[str, tuple]&#xa;- now: float" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l3-hysteresis">
+          <mxGeometry y="26" width="300" height="94" as="geometry" />
+        </mxCell>
+        <mxCell id="l3-hysteresis-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="l3-hysteresis">
+          <mxGeometry y="120" width="300" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l3-hysteresis-methods" value="+ process(now, observations) → dict&#xa;- _check_entry(key, is_active, delay) → bool&#xa;- _check_exit(key, is_active, delay) → bool" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l3-hysteresis">
+          <mxGeometry y="121" width="300" height="99" as="geometry" />
+        </mxCell>
+
+        <!-- StateManager -->
+        <mxCell id="l3-state" value="StateManager" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#fff3e0;strokeColor=#e65100;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="750" y="700" width="300" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="l3-state-attr" value="- hysteresis: HysteresisManager&#xa;- current_states: dict[str, str]&#xa;  - fatigue: str&#xa;  - posture: str&#xa;  - phone: str&#xa;  - distraction: str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l3-state">
+          <mxGeometry y="26" width="300" height="124" as="geometry" />
+        </mxCell>
+        <mxCell id="l3-state-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="l3-state">
+          <mxGeometry y="150" width="300" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l3-state-methods" value="+ compute_sub_states(now, scores, flags) → dict&#xa;- _compute_fatigue_target(ema) → str&#xa;- _compute_distraction_target(score) → str&#xa;- _compute_posture_target(ema, flag) → str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l3-state">
+          <mxGeometry y="151" width="300" height="109" as="geometry" />
+        </mxCell>
+
+        <!-- ============ L4 FUSION ENGINE ============ -->
+        <mxCell id="l4-fusion" value="FusionEngine" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#ffebee;strokeColor=#b71c1c;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="700" width="300" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="l4-fusion-attr" value="- PRIORITY_MAP: dict[str, int]&#xa;  drowsy: 9, phone: 8, social: 7,&#xa;  distracted: 6, ..., focused: 0" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l4-fusion">
+          <mxGeometry y="26" width="300" height="94" as="geometry" />
+        </mxCell>
+        <mxCell id="l4-fusion-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="l4-fusion">
+          <mxGeometry y="120" width="300" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l4-fusion-methods" value="+ compute_global_state(sub_states, scores)&#xa;    → str (global_state)&#xa;- _get_priority(state) → int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l4-fusion">
+          <mxGeometry y="121" width="300" height="99" as="geometry" />
+        </mxCell>
+
+        <!-- ============ L5 ALERT MANAGER ============ -->
+        <mxCell id="l5-alert" value="AlertManager" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#ffebee;strokeColor=#b71c1c;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1000" width="340" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="l5-alert-attr" value="- _persistence_timers: dict[str, float]&#xa;- _validated_states: dict[str, bool]&#xa;- _last_fired_times: dict[str, float]&#xa;- alert_configs: list[dict]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l5-alert">
+          <mxGeometry y="26" width="340" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="l5-alert-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="l5-alert">
+          <mxGeometry y="130" width="340" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="l5-alert-methods" value="+ evaluate(state: ConsolidatedStates) → AlertStatus&#xa;- _update_persistence(key, is_active, now, duration)&#xa;    → (bool, float)&#xa;- _is_on_cooldown(key, now, cooldown) → bool&#xa;- _get_highest_priority_alert() → Alert" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="l5-alert">
+          <mxGeometry y="131" width="340" height="149" as="geometry" />
+        </mxCell>
+
+        <!-- ============ ORCHESTRATOR - TEMPORAL ENGINE ============ -->
+        <mxCell id="orchestrator" value="TemporalEngine" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#f0f4c3;strokeColor=#33691e;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="750" y="1000" width="380" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="orchestrator-attr" value="- session_id: str&#xa;- score_manager: ScoreManager&#xa;- state_manager: StateManager&#xa;- fusion_engine: FusionEngine&#xa;- alert_manager: AlertManager&#xa;- _gaze_away_start: float | None" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="orchestrator">
+          <mxGeometry y="26" width="380" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="orchestrator-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="orchestrator">
+          <mxGeometry y="160" width="380" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="orchestrator-methods" value="+ process(att, fat, pos, phone) → CVOutputPayload&#xa;+ _head_direction(yaw, pitch) → str&#xa;+ _create_empty_payload(...) → CVOutputPayload&#xa;- _compute_raw_evidence(att, fat, pos, phone)&#xa;    → dict&#xa;- _apply_distraction_logic(head_dir, ...)&#xa;    → float" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="orchestrator">
+          <mxGeometry y="161" width="380" height="139" as="geometry" />
+        </mxCell>
+
+        <!-- ============ MAIN PIPELINE ============ -->
+        <mxCell id="main-pipeline" value="SmartFocusPipelineV3" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e0f2f1;strokeColor=#004d40;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1000" width="340" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="main-pipeline-attr" value="- session_id: str&#xa;- attention: AttentionAnalyzer&#xa;- fatigue: FatigueAnalyzer&#xa;- posture: PostureAnalyzer&#xa;- phone: PhoneDetector&#xa;- engine: TemporalEngine&#xa;- cap: VideoCapture" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="main-pipeline">
+          <mxGeometry y="26" width="340" height="154" as="geometry" />
+        </mxCell>
+        <mxCell id="main-pipeline-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=top;spacingTop=-1;spacingLeft=4;spacingRight=4;rotatable=0;deletable=0;editable=0;connectable=0;" vertex="1" parent="main-pipeline">
+          <mxGeometry y="180" width="340" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="main-pipeline-methods" value="+ __init__(...) → None&#xa;+ run(duration) → None&#xa;- _calibrate() → None&#xa;- _process_frame(frame) → CVOutputPayload&#xa;- _send_to_backend(payload) → None" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="main-pipeline">
+          <mxGeometry y="181" width="340" height="119" as="geometry" />
+        </mxCell>
+
+        <!-- ============ RELATIONS / ASSOCIATIONS ============ -->
+
+        <!-- L1 → L2 -->
+        <mxCell id="edge-l1-l2" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=0;dashPattern=1 4;endArrow=open;endSize=12;" edge="1" parent="1" source="l1-attention" target="l2-score">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-l1-l2b" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=0;dashPattern=1 4;endArrow=open;endSize=12;" edge="1" parent="1" source="l1-fatigue" target="l2-score">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- L2 → L3 -->
+        <mxCell id="edge-l2-l3" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=0;dashPattern=1 4;endArrow=open;endSize=12;" edge="1" parent="1" source="l2-score" target="l3-state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- L3 → L4 -->
+        <mxCell id="edge-l3-l4" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=0;dashPattern=1 4;endArrow=open;endSize=12;" edge="1" parent="1" source="l3-state" target="l4-fusion">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- L4 → L5 -->
+        <mxCell id="edge-l4-l5" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=0;dashPattern=1 4;endArrow=open;endSize=12;" edge="1" parent="1" source="l4-fusion" target="l5-alert">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- TemporalEngine uses L1-L5 -->
+        <mxCell id="edge-orch-l1" value="drives" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=0;dashPattern=1 4;endArrow=open;endSize=12;strokeColor=#808080;" edge="1" parent="1" source="orchestrator" target="l2-score">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-orch-l2" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=0;dashPattern=1 4;endArrow=open;endSize=12;strokeColor=#808080;" edge="1" parent="1" source="orchestrator" target="l3-state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-orch-l3" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=0;dashPattern=1 4;endArrow=open;endSize=12;strokeColor=#808080;" edge="1" parent="1" source="orchestrator" target="l4-fusion">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-orch-l4" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=0;dashPattern=1 4;endArrow=open;endSize=12;strokeColor=#808080;" edge="1" parent="1" source="orchestrator" target="l5-alert">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Pipeline uses all -->
+        <mxCell id="edge-pipeline-l1" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=12;strokeColor=#333333;" edge="1" parent="1" source="main-pipeline" target="l1-attention">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-pipeline-orch" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=12;strokeColor=#333333;" edge="1" parent="1" source="main-pipeline" target="orchestrator">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- TemporalEngine outputs CVOutputPayload -->
+        <mxCell id="edge-orch-output" value="creates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=12;strokeColor=#ff6b6b;" edge="1" parent="1" source="orchestrator" target="model-cvoutput">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============ LEGEND ============ -->
+        <mxCell id="legend" value="&lt;b&gt;LÉGENDE&lt;/b&gt;&lt;br&gt;🟢 L1: Analyseurs (Instantané)&lt;br&gt;🟣 L2: Scores (Lissage)&lt;br&gt;🟡 L3: États (Hysteresis)&lt;br&gt;🔴 L4: Fusion (Priorité)&lt;br&gt;🔴 L5: Alertes (Validation)&lt;br&gt;🟤 Orchestration&lt;br&gt;━━━ Utilisation" style="text;html=1;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;fillColor=#ffffcc;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="200" height="180" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

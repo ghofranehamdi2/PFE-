@@ -1,0 +1,371 @@
+useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }useCaseDiagram
+    actor "Étudiant" as student
+    
+    package SmartFocus {
+        usecase "S'authentifier (Login/Register)" as UC_Auth
+        
+        package "Analyse & Vigilance" {
+            usecase "Lancer une Session de Travail" as UC_Session
+            usecase "Recevoir des alertes (posture, fatigue)" as UC_Alerts
+            usecase "Visualiser le Dashboard temps réel" as UC_Dashboard
+        }
+        
+        package "Outils d'Apprentissage (IA)" {
+            usecase "Uploader des documents (PDF)" as UC_Upload
+            usecase "Chatbot intelligent (RAG)" as UC_Chat
+            usecase "Générer et passer des Quiz" as UC_Quiz
+            usecase "Réviser via Flashcards (SM-2)" as UC_Flash
+        }
+        
+        package "Planification & Santé" {
+            usecase "Gérer son planning de travail" as UC_Planning
+            usecase "Suivre la qualité du sommeil" as UC_Sleep
+            usecase "Consulter les statistiques globales" as UC_Stats
+        }
+    }
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>
+    
+    student --> UC_Auth
+    student --> UC_Session
+    student --> UC_Dashboard
+    student --> UC_Upload
+    student --> UC_Chat
+    student --> UC_Quiz
+    student --> UC_Flash
+    student --> UC_Planning
+    student --> UC_Sleep
+    student --> UC_Stats
+    
+    UC_Session ..> UC_Alerts : <<include>>
