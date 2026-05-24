@@ -348,6 +348,14 @@ class SmartFocusPipelineV3:
                 except Exception:
                     pass
 
+            # Save a predictable copy of the final scores in the workspace root for easy user access
+            try:
+                workspace_summary_path = Path(__file__).resolve().parents[1] / "session_summary.json"
+                workspace_summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+                print(f"[SmartFocus] Saved a copy of the session summary JSON to: {workspace_summary_path}")
+            except Exception as e:
+                print(f"[SmartFocus] Failed to save workspace copy: {e}")
+
             # Print session summary once at the end
             print("[SmartFocus] Session summary:")
             print(json.dumps(summary, ensure_ascii=False, indent=2))

@@ -64,17 +64,17 @@ class MinimalUI:
         h, w = frame.shape[:2]
         bar_h = 100 
 
-        # Translations dictionary to match the image
+        # Translations dictionary in English to prevent any encoding/accent rendering issues in OpenCV
         TRANS = {
-            "focused": "CONCENTRÉ", "focused_reading": "LECTURE", "focused_writing": "ECRITURE",
-            "thinking": "REFLEXION", "self_explaining": "AUTO-EXPLICATION",
-            "brief_off_task": "DECONCENTRATION", "phone_distraction": "DISTRACTION (TÉL)",
+            "focused": "FOCUSED", "focused_reading": "READING", "focused_writing": "WRITING",
+            "thinking": "THINKING", "self_explaining": "SELF-EXPLAINING",
+            "brief_off_task": "DISTRACTED", "phone_distraction": "DISTRACTION (PHONE)",
             "social_distraction": "DISTRACTION (SOCIAL)",
-            "good": "Bonne", "warning": "Attention", "bad": "Mauvaise",
-            "normal": "Normale", "fatigue_warning": "Warning", "fatigue_high": "Critique",
-            "alone": "Seul", "other_person_present": "Présence", "active_interaction": "Interaction",
-            "not_detected": "Non détecté", "detected_not_used": "Détecté", "probable_in_use": "En main",
-            "acceptable": "Acceptable", "poor_persistent": "Mauvaise (P)"
+            "good": "Good", "warning": "Warning", "bad": "Bad",
+            "normal": "Normal", "fatigue_warning": "Warning", "fatigue_high": "Critical",
+            "alone": "Alone", "other_person_present": "Presence", "active_interaction": "Interaction",
+            "not_detected": "Not Detected", "detected_not_used": "Detected", "probable_in_use": "In Hand",
+            "acceptable": "Acceptable", "poor_persistent": "Bad (Persistent)"
         }
 
         # High-quality dark header bar
@@ -85,7 +85,7 @@ class MinimalUI:
         if calibrating:
             pct = 0.0 if calibration_progress is None else max(0.0, min(1.0, float(calibration_progress)))
             cv2.rectangle(frame, (0, bar_h - 5), (int(w * pct), bar_h), (0, 220, 100), -1)
-            cv2.putText(frame, "INITIALISATION DU SYSTEME...", (20, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            cv2.putText(frame, "INITIALIZING SYSTEM...", (20, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
             return
 
         # 1. Main Mode Header
@@ -100,29 +100,29 @@ class MinimalUI:
             y_label = 65
             y_val = 88
 
-            # Mapping factors to the UI items seen in the image
+            # Mapping factors to the UI items in English
             ui_items = [
                 ("Posture", TRANS.get(factors.get("posture_state", "good").lower(), factors.get("posture_state", "???")), "posture"),
-                ("Fatigue", TRANS.get(factors.get("fatigue_state", "normal").lower(), "Normale"), "fatigue"),
-                ("Social", TRANS.get(factors.get("social_state", "alone").lower(), "Seul"), "social"),
-                ("Tél", "Détecté" if phone_detected else "Non détecté", "phone"),
+                ("Fatigue", TRANS.get(factors.get("fatigue_state", "normal").lower(), "Normal"), "fatigue"),
+                ("Social", TRANS.get(factors.get("social_state", "alone").lower(), "Alone"), "social"),
+                ("Phone", "Detected" if phone_detected else "Not Detected", "phone"),
             ]
 
             # Instant overrides for UI responsiveness (as in previous turn)
             if factors.get("eye_closed_instant"):
-                ui_items[1] = ("Fatigue", "SOMNOLENCE", "fatigue")
+                ui_items[1] = ("Fatigue", "DROWSINESS", "fatigue")
             if factors.get("yawn_instant"):
-                ui_items[1] = ("Fatigue", "BAILLEMENT", "fatigue")
+                ui_items[1] = ("Fatigue", "YAWNING", "fatigue")
 
             for i, (lbl, val, kind) in enumerate(ui_items):
                 x = x_offset + i * spacing
                 if x + 100 > w: break
                 
-                # Determine color based on value text or severity
+                # Determine color based on value text or severity (English words)
                 lower_val = val.lower()
-                if any(k in lower_val for k in ["mauvaise", "critique", "élevé", "détecté", "somnolence", "baillement", "active"]):
+                if any(k in lower_val for k in ["bad", "critical", "drowsiness", "yawning", "detected", "interaction", "poor"]):
                     color = (0, 0, 255) # Red
-                elif any(k in lower_val for k in ["attention", "warning", "suspecté", "acceptable"]):
+                elif any(k in lower_val for k in ["warning", "acceptable", "suspected"]):
                     color = (0, 165, 255) # Orange
                 else:
                     color = (0, 200, 80) # Green
@@ -137,7 +137,7 @@ class MinimalUI:
             cv2.rectangle(panel_overlay, (rx, ry), (w - 10, h - 10), (30, 30, 30), -1)
             cv2.addWeighted(panel_overlay, 0.6, frame, 0.4, 0, frame)
             
-            cv2.putText(frame, "Analyse:", (rx + 10, ry + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
+            cv2.putText(frame, "Analysis:", (rx + 10, ry + 25), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
             for i, reason in enumerate(reasoning[:4]):
                 clean_reason = reason.replace("_", " ").capitalize()
                 cv2.putText(frame, f"- {clean_reason}", (rx + 15, ry + 50 + i * 22), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (200, 200, 200), 1)

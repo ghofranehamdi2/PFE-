@@ -1,6 +1,6 @@
 """
 PhoneDetector - Level 1 Analyzer
-Remplace le modèle TFLite MediaPipe par YOLOv8n (COCO class 67 = cell phone).
+Remplace le modèle TFLite MediaPipe par YOLOv26n (COCO class 67 = cell phone).
 Plus robuste, meilleure précision, gestion des orientations multiples.
 """
 
@@ -17,7 +17,7 @@ MAX_REL_AREA         = 0.35
 
 class PhoneDetector:
     """
-    Level 1 Analyzer: Détection instantanée de téléphone via YOLOv8n.
+    Level 1 Analyzer: Détection instantanée de téléphone via YOLOv26n.
     Aucune persistance temporelle — géré par temporal_engine.
     """
 
@@ -43,13 +43,13 @@ class PhoneDetector:
             import warnings
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                self.model  = YOLO("yolov8n.pt")
+                self.model  = YOLO("yolo26n.pt")
             
             # Restore original torch.load
             torch.load = _original_torch_load
             
             self._ready = True
-            print("[Phone L1] [OK] YOLOv8n chargé avec succès.")
+            print("[Phone L1] [OK] YOLOv26n chargé avec succès.")
         except ImportError:
             print("[Phone L1] [ERROR] ultralytics non installé. Lancez: pip install ultralytics")
         except Exception as e:

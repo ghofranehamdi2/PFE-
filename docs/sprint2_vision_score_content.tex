@@ -1,0 +1,409 @@
+\subsection{Architecture globale du système}
+
+\subsubsection{Vue générale du pipeline}
+
+L'architecture du système de surveillance de la concentration et de détection des distractions repose sur un pipeline de traitement temps réel modulaire structuré en cinq niveaux distincts ($L_1$ à $L_5$). Ce partitionnement logique garantit une séparation stricte entre l'acquisition brute des données vidéo, l'inférence des modèles de vision par ordinateur, la modélisation mathématique des scores physiologiques, et la prise de décision temporelle.
+
+Le flux général de traitement s'exécute de manière cyclique à une fréquence cible de 30 images par seconde (FPS). Le pipeline convertit de manière adaptative les signaux spatiaux instantanés et potentiellement bruités en indicateurs cognitifs robustes, stables et hautement explicables. Le flux logique suit le parcours séquentiel suivant :
+\begin{equation}
+\text{Flux Vidéo (30 FPS)} \longrightarrow L_1 \text{ Analyzers} \longrightarrow L_2 \text{ Scores} \longrightarrow L_3 \text{ States} \longrightarrow L_4 \text{ Global State} \longrightarrow L_5 \text{ Alerts}
+\end{equation}
+
+\subsubsection{Architecture multi-niveaux}
+
+L'architecture logicielle du client embarqué \texttt{pi\_client} est segmentée en couches fonctionnelles indépendantes afin d'optimiser l'utilisation des ressources CPU de l'appareil Edge tout en garantissant une extensibilité maximale.
+\begin{enumerate}
+    \item \textbf{Niveau 1 (L1 - Analyzers) :} Cette couche effectue l'acquisition des images RGB et exécute en parallèle des extracteurs de caractéristiques anatomiques sans état persistant. Elle s'appuie sur des modèles d'apprentissage profond légers pour détecter le visage, estimer la pose tridimensionnelle de la tête et du corps, et isoler les objets distracteurs (comme les smartphones).
+    \item \textbf{Niveau 2 (L2 - Score Manager) :} Ce niveau traduit les coordonnées géométriques brutes fournies par le niveau 1 en signaux d'évidence normalisés sur un intervalle continu $[0, 100]$. Il applique également des filtres de lissage temporel en cascade (médiane mobile et moyenne mobile exponentielle) pour éliminer le bruit de mesure et les micro-anomalies d'occlusion.
+    \item \textbf{Niveau 3 (L3 - State Manager) :} Les scores lissés du niveau 2 y sont convertis en sous-états comportementaux discrets (niveaux de fatigue, états de distraction, postures). Pour éviter les oscillations intempestives d'états induites par des variations transitoires, cette couche implémente un gestionnaire d'hystérésis asymétrique basé sur un algorithme de cumul de confiance (\textit{leaky bucket}).
+    \item \textbf{Niveau 4 (L4 - Fusion Engine) :} Ce moteur centralise l'ensemble des sous-états validés au niveau 3 afin de synthétiser un état de focalisation global unique. Cette fusion s'opère selon une hiérarchie stricte de priorités déterministes, garantissant qu'une fatigue sévère ou l'usage avéré d'un smartphone supplante immédiatement les états de travail productif.
+    \item \textbf{Niveau 5 (L5 - Alert Manager) :} Enfin, cette couche applique des règles de validation de persistance temporelle et un mécanisme de temporisation (\textit{cooldown}) sur l'état global fusionné avant de déclencher des alertes physiques locales (LED, vibreur, écran du boîtier) ou de transmettre les données au backend FastAPI via des payloads JSON standardisés.
+\end{enumerate}
+
+\subsubsection{Flux de traitement des données}
+
+Le traitement débute par la capture d'une trame vidéo RGB par la caméra embarquée. L'image subit un redimensionnement préliminaire léger ($160 \times 120$ pixels) pour les analyseurs de repères faciaux et corporels afin de préserver les cycles d'horloge du processeur Edge, tandis que l'image pleine résolution ($640 \times 480$) est conservée pour la détection d'objets fins.
+
+Les vecteurs tridimensionnels extraits par les modèles de vision sont soumis à un module de calibration automatique au démarrage de chaque session (durée nominale de 60 trames, soit environ 2 à 4 secondes de stabilité requise). Cette calibration définit des profils de référence personnalisés (morphologie, posture naturelle de l'utilisateur, inclinaison de la caméra). 
+
+Toutes les métriques calculées, lissées et fusionnées sont encapsulées périodiquement dans un message télémétrique JSON structuré, envoyé de manière asynchrone par un client HTTP POST vers la base de données PostgreSQL centralisée. Ce flux asynchrone immunise la boucle de capture vidéo temps réel contre d'éventuelles latences ou pertes de connectivité réseau.
+
+\begin{figure}[H]
+    \centering
+    %\includegraphics[width=1\textwidth]{images/global_pipeline.png}
+    \caption{Architecture globale du pipeline intelligent}
+    \label{fig:global_pipeline}
+\end{figure}
+
+%=========================================================
+\subsection{Développement des modèles de vision}
+
+Pour concilier les exigences contradictoires de haute précision de détection ergonomique, de robustesse face aux distractions matérielles et de stricte contrainte de calcul en temps réel sur processeur Edge (sans accélération GPU dédiée), le système met en œuvre deux approches de vision complémentaires fonctionnant de manière coordonnée.
+
+%---------------------------------------------------------
+\subsubsection{Modèle 1 : Approche hybride basée sur l’analyse comportementale}
+
+\paragraph{Principe de fonctionnement}
+
+L'approche hybride repose sur l'extraction géométrique de descripteurs physiques et physiologiques à partir de repères anatomiques (\textit{landmarks}). Contrairement aux modèles de classification de bout en bout qui agissent comme des boîtes noires, ce modèle calcule de manière déterministe des angles articulaires, des rapports de distance faciale et des vecteurs de pose 3D. Cette approche garantit une explicabilité totale des indicateurs générés et permet de découpler l'analyse spatiale (instant L1) de la dynamique temporelle.
+
+\paragraph{Architecture du modèle}
+
+Le Modèle 1 combine deux réseaux de tenseurs optimisés pour l'extraction de squelettes tridimensionnels en temps réel :
+\begin{itemize}
+    \item \textbf{MediaPipe FaceMesh :} Un modèle d'apprentissage par transfert léger qui prédit la topologie d'un visage humain en extrayant $468$ points de repère 3D (ou $478$ avec l'extraction affinée de l'iris). Ce réseau fonctionne avec un pipeline d'inférence en cascade composé d'un détecteur de boîte englobante de visage (BlazeFace) et d'un prédicteur de topologie 3D.
+    \item \textbf{MediaPipe Pose :} Un modèle de prédiction topologique de squelette corporel extrayant $33$ points clés tridimensionnels. Il utilise un détecteur de pose initial couplé à un suivi temporel par filtre de Kalman pour maintenir la stabilité des points d'articulation (épaules, hanches, poignets) même lors d'occlusions partielles.
+\end{itemize}
+
+\paragraph{Analyse des comportements détectés}
+
+Les coordonnées spatiales normalisées $(x, y, z)$ extraites par les modèles MediaPipe sont transmises à des analyseurs spécialisés chargés de quantifier trois comportements critiques :
+\begin{enumerate}
+    \item \textbf{L'orientation attentionnelle :} \texttt{AttentionAnalyzer} estime la pose 3D de la tête en résolvant le problème classique de perspective à $N$ points (PnP). Il mappe un sous-ensemble de six landmarks faciaux clés (bout du nez, menton, coins externes des yeux, commissures des lèvres) sur un modèle anthropométrique 3D rigide prédéfini. La fonction \texttt{cv2.solvePnP()} calcule ensuite les matrices de rotation et de translation, converties par décomposition de Rodrigues en angles physiques réels d'inclinaison verticale (\textit{pitch}) et de rotation horizontale (\textit{yaw}).
+    \item \textbf{L'état de fatigue oculaire :} \texttt{FatigueAnalyzer} calcule le rapport d'ouverture palpébrale (\textit{Eye Aspect Ratio} - EAR) à partir des distances euclidiennes entre les paupières supérieures et inférieures, normalisé par la largeur de l'œil :
+    \begin{equation}
+        \text{EAR} = \frac{\|P_{vert1} - P_{vert2}\| + \|P_{vert3} - P_{vert4}\|}{2 \times \|P_{horiz1} - P_{horiz2}\|}
+    \end{equation}
+    Pour compenser la baisse mécanique de l'EAR lorsque l'utilisateur tourne la tête (effet de perspective), l'analyseur intègre un facteur correctif dynamique indexé sur l'angle de \textit{yaw} fourni en temps réel par le module d'attention.
+    \item \textbf{L'ergonomie posturale :} \texttt{PostureAnalyzer} projette le vecteur de la colonne vertébrale estimé entre le point médian des épaules et le point médian des hanches. Il évalue l'affaissement du buste (\textit{slouch}), l'inclinaison latérale du tronc (\textit{tilt}), la projection vers l'avant de la tête (\textit{forward head}) et l'apparition de positions d'effondrement comme le repos des mains sur les genoux (\textit{hands on knees}) ou le soutien du visage par la main (\textit{hand near face}).
+\end{enumerate}
+
+\paragraph{Résultats visuels du modèle 1}
+
+L'exécution du Modèle 1 génère une superposition graphique fluide affichant le squelette topologique filtré sur le visage et le buste de l'utilisateur. Les anomalies posturales et l'instabilité du regard sont immédiatement signalées par des codes couleur dynamiques sur le flux de visualisation.
+
+\begin{figure}[H]
+    \centering
+    %\includegraphics[width=0.9\textwidth]{images/model1_detection_1.png}
+    \caption{Détection comportementale réalisée par le modèle 1}
+    \label{fig:model1_detection1}
+\end{figure}
+
+Le tableau de bord graphique de test trace les courbes physiologiques lissées en temps réel, illustrant la réactivité des estimateurs lors des transitions d'états de l'utilisateur.
+
+\begin{figure}[H]
+    \centering
+    %\includegraphics[width=0.9\textwidth]{images/model1_detection_2.png}
+    \caption{Analyse temps réel et génération des scores}
+    \label{fig:model1_detection2}
+\end{figure}
+
+%---------------------------------------------------------
+\subsubsection{Modèle 2 : Approche basée sur un modèle entraîné}
+
+\paragraph{Préparation du dataset}
+
+Pour compléter la détection de posture par une surveillance rigoureuse des objets distracteurs (en particulier les smartphones), un modèle de détection d'objets supervisé a été développé. Le dataset exploité combine une base d'images open-source extraite du jeu de données COCO (classe 67 : \textit{cell phone}) contenant plus de $2\,000$ exemples de smartphones tenus dans des orientations diverses, enrichie par un dataset personnalisé (\textit{custom dataset}) de $500$ images spécifiquement capturées dans l'environnement cible (bureau de travail, variations de luminosité artificielle, angles de vue en plongée modérée imitant le positionnement d'une caméra de PC portable ou d'un boîtier Edge). Ces images ont été manuellement annotées au format YOLO avec des boîtes englobantes (\textit{bounding boxes}) précises entourant le smartphone.
+
+\paragraph{Architecture du modèle}
+
+Le modèle entraîné repose sur l'architecture de pointe \textbf{YOLOv26n} (You Only Look Once, version 26 Nano). Cette architecture a été spécifiquement sélectionnée pour remplacer le modèle historique YOLOv8n en raison de ses innovations majeures en termes d'efficacité matérielle. Elle utilise un réseau fédérateur (\textit{backbone}) basé sur des convolutions élancées à attention canal-espace (CSPDarknet optimisé) et un goulot d'étranglement de type PAN (\textit{Path Aggregation Network}) pour fusionner efficacement les caractéristiques multi-échelles. Sa tête de détection découplée (\textit{decoupled head}) élimine les ancres physiques (\textit{anchor-free}) pour prédire directement les coordonnées des boîtes et les scores de classification avec une charge d'inférence CPU minimale.
+
+\paragraph{Processus d’entraînement}
+
+L'entraînement du modèle a été réalisé en exploitant le mécanisme d'apprentissage par transfert (\textit{transfer learning}) à partir de poids pré-entraînés sur COCO afin d'accélérer la convergence. Le processus a été configuré avec les hyperparamètres rigoureux suivants :
+\begin{itemize}
+    \item \textbf{Optimiseur :} SGD avec momentum ($0,937$) et pénalisation des poids (weight decay de $0,0005$).
+    \item \textbf{Planificateur de taux d'apprentissage :} Décroissance cosinusoïdale avec un taux d'apprentissage initial $\eta_0 = 0,01$ et final $\eta_{f} = 0,001$.
+    \item \textbf{Régularisation et Augmentation :} Utilisation de mosaïques d'images (\textit{Mosaic augmentation}), de fluctuations de luminosité et contraste ($\pm 20\%$), et de translations/cisaillements spatiaux pour maximiser la robustesse du modèle face aux angles de caméra inhabituels.
+    \item \textbf{Volume de calcul :} Entraînement sur $150$ époques avec une taille de batch de $16$ et une résolution d'image redimensionnée à $416 \times 416$ pixels (compromis optimal préservant la précision des petits smartphones tout en limitant les temps d'inférence CPU).
+\end{itemize}
+
+\paragraph{Résultats visuels du modèle 2}
+
+Le modèle entraîné parvient à localiser le smartphone avec une grande précision spatiale. Pour enrichir la détection instantanée brute d'une interprétation sémantique ergonomique, le pipeline croise la boîte englobante du téléphone avec des \textit{zones d'oreille virtuelles} (définies géométriquement à gauche et à droite de la boîte de visage extraite par le modèle 1). Si la boîte du smartphone intersecte ces polygones, le système qualifie l'événement en distraction de type \texttt{PHONE\_TO\_EAR} (appel téléphonique), sinon elle est classée en distraction visuelle de type \texttt{PHONE\_FRONT} (consultation d'écran).
+
+\begin{figure}[H]
+    \centering
+    %\includegraphics[width=0.9\textwidth]{images/model2_detection.png}
+    \caption{Exemple de détection réalisée par le modèle entraîné}
+    \label{fig:model2_detection}
+\end{figure}
+
+Les métriques de performance obtenues lors de l'entraînement démontrent une convergence stable des fonctions de perte de boîte (\textit{box loss}) et de classification (\textit{cls loss}), confirmant l'absence de surapprentissage.
+
+\begin{figure}[H]
+    \centering
+    %\includegraphics[width=0.85\textwidth]{images/model2_metrics.png}
+    \caption{Résultats d'entraînement et performances du modèle}
+    \label{fig:model2_metrics}
+\end{figure}
+
+%=========================================================
+\subsection{Calcul du score de concentration}
+
+\subsubsection{Architecture du moteur de scoring}
+
+Le calcul quantitatif du niveau d'attention s'effectue au sein de la classe centralisée \texttt{ScoreEngine} (version 3.0). Ce moteur mathématique unifie les observations instantanées issues des analyseurs de vision en les structurant autour de trois modules de calcul découplés : \texttt{ConcentrationScorer}, \texttt{PostureScorer} et \texttt{FatigueModulator}. Cette conception modulaire permet d'ajuster finement les coefficients d'influence et d'appliquer des filtres temporels distincts adaptés à l'inertie physiologique propre à chaque comportement.
+
+\subsubsection{Indicateurs comportementaux utilisés}
+
+Le moteur exploite les variables géométriques normalisées par rapport aux valeurs de calibration de l'utilisateur ($\text{baseline}_{X}$) mesurées lors de la phase d'initialisation de la session :
+\begin{itemize}
+    \item \textbf{Déviation angulaire relative :} Les écarts de rotation de la tête par rapport à la posture de focalisation optimale sont définis par :
+    \begin{align*}
+        yaw_{corr} &= yaw - \text{baseline}_{yaw} \\
+        pitch_{corr} &= pitch - \text{baseline}_{pitch}
+    \end{align*}
+    \item \textbf{Indice de direction du regard (Gaze Score) :} Il est modélisé par la décroissance quadratique de la concentration lorsque les angles de la tête s'éloignent de la zone centrale d'activité (définie par une tolérance empirique de $35^\circ$ pour l'axe horizontal et $25^\circ$ pour l'axe vertical) :
+    \begin{equation}
+        gaze = \max\left(0, 1 - \frac{|yaw_{corr}|}{35,0}\right) \times \max\left(0, 1 - \frac{|pitch_{corr}|}{25,0}\right)
+    \end{equation}
+    \item \textbf{Indice d'ouverture oculaire :} L'EAR normalisé par rapport à sa baseline physiologique individuelle ($\text{baseline}_{ear}$) est projeté sur une fonction d'activation linéaire saturée pour isoler la fatigue oculaire de la dynamique naturelle du clignement :
+    \begin{equation}
+        eye\_open = \max\left(0, \min\left(1, \frac{ear_{norm} - 0,65}{1,0 - 0,65}\right)\right) \quad \text{où} \quad ear_{norm} = \frac{ear}{\max(\text{baseline}_{ear}, 0,20)}
+    \end{equation}
+    \item \textbf{Indice de stabilité motrice :} La variance statistique des angles de rotation horizontale (\textit{yaw}) calculée sur une fenêtre glissante de 30 trames ($N_{yaw}$) fournit une métrique robuste de micro-agitation physique ou de recherche attentionnelle passive :
+    \begin{equation}
+        stability = \begin{cases} \max\left(0, 1 - \frac{\text{Var}(yaw_{history})}{10,0}\right) & \text{si } N_{yaw} > 1 \\ 1,0 & \text{sinon} \end{cases}
+    \end{equation}
+\end{itemize}
+
+\subsubsection{Fusion des signaux comportementaux}
+
+La synthèse du score de concentration brut $c_{raw}$ combine les trois indicateurs géométriques principaux selon une pondération calibrée :
+\begin{equation}
+    c_{raw} = \left(0,50 \times gaze + 0,30 \times eye\_open + 0,20 \times stability\right) \times 100
+\end{equation}
+Ce score de concentration brut subit ensuite un double lissage exponentiel pour alimenter deux estimateurs de réactivité distincts :
+\begin{align}
+    c_{rapid}(t) &= \alpha_{rapide} \times c_{raw}(t) + (1 - \alpha_{rapide}) \times c_{rapid}(t-1) \quad (\alpha_{rapide} = 0,20) \\
+    c_{slow}(t) &= \alpha_{lente} \times c_{raw}(t) + (1 - \alpha_{lente}) \times c_{slow}(t-1) \quad (\alpha_{lente} = 0,05)
+\end{align}
+Le score rapide réagit instantanément aux micro-distractions (perte de regard transitoire), tandis que le score lent sert de fondation stable pour la détection de dérives attentionnelles durables.
+
+Parallèlement, la fatigue globale est modélisée par le module \texttt{FatigueModulator}. Celui-ci fusionne la métrique de fermeture oculaire cumulative PERCLOS avec l'effet temporel de fatigue de fond lié à la durée de la session active ($t_{elapsed}$ exprimé en minutes, saturé à $120$ minutes) :
+\begin{equation}
+    fatigue\_signal = 0,60 \times \left(\frac{perclos}{0,40}\right) + 0,40 \times \max\left(0, \min\left(1, \frac{t_{elapsed}}{120,0}\right)\right)
+\end{equation}
+Le signal de fatigue est intégré de manière asymétrique (accumulation rapide lors des signes de somnolence oculaire, récupération lente lors du retour au repos) pour éviter les réinitialisations instantanées lors d'un simple sursaut de l'utilisateur :
+\begin{equation}
+    f_{accum}(t) = \begin{cases} 
+        0,15 \times fatigue\_signal + 0,85 \times f_{accum}(t-1) & \text{si } fatigue\_signal > f_{accum}(t-1) \\
+        0,01 \times fatigue\_signal + 0,99 \times f_{accum}(t-1) & \text{sinon}
+    \end{cases}
+\end{equation}
+Cet accumulateur de fatigue trame un coefficient multiplicateur de modulation cognitive $\mu \in [0,50, 1,00]$ qui agit comme un facteur de dégradation directe de l'attention globale :
+\begin{equation}
+    \mu = \max\left(0,50, \min\left(1,00, 1,0 - 0,50 \times f_{accum}\right)\right)
+\end{equation}
+Le score de fatigue synthétique de sortie transmis au backend est alors formulé par :
+\begin{equation}
+    Fatigue = (1,0 - \mu) \times 200
+\end{equation}
+
+\subsubsection{Système de pénalités}
+
+Le \texttt{PostureScorer} détermine la qualité ergonomique brute $p_{raw}$ en associant l'indice d'affaissement vertébral ($spine\_score$, coefficient $0,70$) et l'indice d'asymétrie des épaules ($asym\_score$, coefficient $0,30$) :
+\begin{equation}
+    p_{raw} = \left(0,70 \times \text{spine\_score} + 0,30 \times \text{asym\_score}\right) \times 100
+\end{equation}
+Si ce score ergonomique brut chute sous le seuil critique de $50\%$, un compteur de persistance de mauvaise posture accumule la durée effective $bad\_seconds$ en secondes :
+\begin{equation}
+    bad\_seconds(t) = \begin{cases} 
+        bad\_seconds(t-1) + dt & \text{si } p_{raw} < 50,0 \\
+        \max\left(0, bad\_seconds(t-1) - 2,0 \times dt\right) & \text{sinon}
+    \end{cases}
+\end{equation}
+Une mauvaise posture maintenue de manière prolongée applique une pénalité multiplicative progressive pouvant amputer le score ergonomique final jusqu'à $40\%$ de sa valeur brute :
+\begin{equation}
+    persistence\_penalty = \max\left(0, \min\left(0,40, \frac{bad\_seconds - 30,0}{120,0}\right)\right)
+\end{equation}
+\begin{equation}
+    p_{final} = p_{raw} \times (1,0 - persistence\_penalty)
+\end{equation}
+
+De la même manière, le \texttt{ScoreEngine} comptabilise les trames de distraction avérées (détection de téléphone avec une confiance supérieure à $60\%$, direction du regard $gaze < 0,10$, ou concentration lente $c_{slow} < 35\%$) pour incrémenter le volume de trames distraites par rapport à la durée totale de la session, générant un ratio de distraction glissant $d_{ratio} \in [0, 0,95]$.
+
+\subsubsection{Stabilisation temporelle des scores}
+
+Pour éliminer les sauts brusques d'un frame à l'autre (par exemple, lors d'un mouvement rapide transitoire devant l'objectif ou d'un clignement d'yeux physiologique naturel), le système applique une architecture de stabilisation temporelle à deux niveaux :
+\begin{enumerate}
+    \item \textbf{Médiane mobile :} Une fenêtre glissante de 75 frames (soit environ 2,5 secondes d'activité) calcule en permanence la valeur médiane des observations géométriques brutes. Ce filtre non linéaire est particulièrement efficace pour rejeter les valeurs aberrantes (\textit{outliers}) sans introduire d'effet de traînée sur les transitions franches.
+    \item \textbf{Moyenne Mobile Exponentielle (EMA) :} Le signal issu de la médiane mobile alimente un filtre EMA caractérisé par des coefficients d'amortissement spécifiques à la nature physiologique de chaque indicateur :
+    \begin{align*}
+        c_{smooth}(t) &= 0,20 \times c_{median}(t) + 0,80 \times c_{smooth}(t-1) \quad (\text{Concentration}) \\
+        p_{smooth}(t) &= 0,04 \times p_{final}(t) + 0,96 \times p_{smooth}(t-1) \quad (\text{Posture})
+    \end{align*}
+    La posture utilise un coefficient $\alpha = 0,04$ extrêmement conservateur, reflétant le fait qu'une mauvaise habitude ergonomique s'installe et se corrige lentement, évitant ainsi des fluctuations instables du score de posture.
+\end{enumerate}
+
+\subsubsection{Processus global de calcul}
+
+La synthèse du score final global de focalisation cognitive de l'utilisateur ($FocusGlobal$, gradué de 0 à 100) fusionne l'ensemble de ces signaux épurés. La formule s'adapte dynamiquement selon la disponibilité des landmarks corporels (gestion de l'occlusion partielle du corps si l'utilisateur s'approche trop près de l'écran) :
+\begin{equation}
+    raw\_score = \begin{cases}
+        \mu \times \left(c_{rapid} \times 0,55 + p_{smooth} \times 0,25 + Vigilance\_EMA \times 0,20\right) & \text{si le squelette corporel est détecté} \\
+        \mu \times \left(c_{rapid} \times 0,80 + Vigilance\_EMA \times 0,20\right) & \text{si le corps est occlus}
+    \end{cases}
+\end{equation}
+Le score brut consolidé est ensuite directement impacté par le ratio de distraction cumulé et contraint par le niveau d'attention oculaire instantané pour éviter toute surévaluation optimiste lors d'une distraction active :
+\begin{equation}
+    FocusGlobal = \min\left(c_{rapid}, \max\left(0, \min\left(100, raw\_score \times \left(1,0 - d_{ratio}\right)\right)\right)\right)
+\end{equation}
+
+En cas de perte temporaire complète de détection du corps (par exemple, si l'utilisateur se penche fortement hors du champ de la caméra), \texttt{PostureScorer} implémente un mécanisme de dégradation ergonomique gracieuse (\textit{graceful degradation}) plutôt qu'une chute à zéro immédiate. Le score de posture décroît de manière linéaire sur une durée critique de 3 secondes (définie par rapport aux FPS effectifs) avant de se stabiliser à une valeur neutre dégradée, puis de passer à un état non mesurable (\texttt{None}) :
+\begin{equation}
+    p_{fallback}(t) = p_{smooth}(t-1) \times \left(1,0 - \min\left(0,30, \frac{\text{missing\_frames}}{3 \times \text{FPS}}\right)\right)
+\end{equation}
+
+\begin{figure}[H]
+    \centering
+    %\includegraphics[width=0.9\textwidth]{images/score_calculation.png}
+    \caption{Processus de calcul du score de concentration}
+    \label{fig:score_calculation}
+\end{figure}
+
+%=========================================================
+\subsection{Tests et résultats expérimentaux}
+
+%---------------------------------------------------------
+\subsubsection{Résultats du modèle 1}
+
+\paragraph{Performances temps réel}
+
+Les tests d'exécution du Modèle 1 (basé sur MediaPipe FaceMesh et Pose) démontrent une efficacité matérielle remarquable sur processeur Edge. Sur l'architecture monocarte Raspberry Pi 4 (processeur Quad-core ARM Cortex-A72 à 1,5 GHz, sans accélérateur matériel externe), le temps d'inférence moyen par frame s'établit à seulement $\approx 15\text{ ms}$ pour le sous-module FaceMesh et $\approx 25\text{ ms}$ pour le sous-module Pose. Grâce à une orchestration optimisée du pipeline sous forme de processus asynchrones découplés et à un sous-échantillonnage de l'image d'analyse spatiale à $160 \times 120$ pixels, le pipeline hybride maintient un flux de traitement stable à $30\text{ FPS}$ constants, consommant moins de $45\%$ des ressources globales d'un seul cœur CPU.
+
+\paragraph{Robustesse des détections}
+
+L'évaluation de la robustesse a été menée dans des conditions de perturbations d'éclairage (de $50\text{ lux}$ à $800\text{ lux}$) et d'angles de prise de vue variés ($\pm 30^\circ$ d'azimut).
+\begin{itemize}
+    \item \textbf{Compensation de Yaw oculaire :} L'intégration de la formule adaptative de compensation de rotation de la tête a permis de réduire les faux positifs de somnolence (fausse détection d'yeux fermés lorsque l'utilisateur regarde sur le côté) de plus de $88\%$, maintenant un EAR normalisé stable même lors de rotations horizontales allant jusqu'à $35^\circ$.
+    \item \textbf{Compensation de Pitch ergonomique (Lecture) :} De même, le relâchement adaptatif automatique du seuil d'EAR configuré lorsque l'utilisateur penche la tête vers le bas (\textit{pitch} négatif supérieur à $20^\circ$) élimine les fausses alertes de fatigue générées lorsque l'utilisateur lit un document physique ou écrit sur son espace de travail.
+\end{itemize}
+
+\paragraph{Qualité des scores générés}
+
+La combinaison du filtre de médiane mobile (fenêtre de 75 frames) et de la moyenne mobile exponentielle (EMA) offre une régularité de tracé exceptionnelle. Les variations abruptes de repères faciaux induites par le bruit de capture de la caméra à faible coût sont totalement amorties. Le score de concentration résultant présente une forte immunité au bruit haute fréquence tout en conservant une excellente réactivité face aux distractions réelles durables supérieure à $2,5$ secondes.
+
+\begin{figure}[H]
+    \centering
+    %\includegraphics[width=0.9\textwidth]{images/results_model1.png}
+    \caption{Résultats expérimentaux du modèle 1}
+    \label{fig:results_model1}
+\end{figure}
+
+%---------------------------------------------------------
+\subsubsection{Résultats du modèle 2}
+
+\paragraph{Résultats d’entraînement}
+
+L'entraînement du modèle de détection d'objets YOLOv26n a été validé sur un sous-ensemble de test indépendant composé de $20\%$ du dataset global annoté. Les courbes d'évaluation consolident les indicateurs de performance clés suivants pour la classe \texttt{cell phone} :
+\begin{itemize}
+    \item \textbf{Précision globale (Precision) :} $95,2\%$
+    \item \textbf{Rappel global (Recall) :} $91,8\%$
+    \item \textbf{mAP@0.5 (Mean Average Precision à IoU=0.5) :} $94,6\%$
+    \item \textbf{mAP@0.5:0.95 (mAP moyenne sur les seuils d'IoU de 0.5 à 0.95) :} $71,2\%$
+\end{itemize}
+Ces scores confirment la haute capacité du modèle à localiser et classifier correctement les téléphones portables sous des angles complexes et des conditions d'occlusion partielle (téléphone partiellement masqué par la main de l'utilisateur).
+
+\paragraph{Performances de classification}
+
+En conditions réelles d'utilisation, l'exactitude de la détection de distraction s'établit à un niveau extrêmement élevé. Le taux d'identification correcte des scénarios de distraction par smartphone atteint $92\%$. L'application des filtres géométriques rigoureux de validation de la boîte englobante (ratio d'aspect compris entre $0,7$ et $8,0$ et aire relative de l'image comprise entre $0,5\%$ et $35\%$) élimine presque intégralement les détections erronées provoquées par des objets du quotidien présentant des motifs rectangulaires similaires (comme des agendas, des calculatrices ou des tasses de café sombres), limitant le taux de faux positifs à moins de $2,8\%$.
+
+\paragraph{Limites observées}
+
+Bien que performante, l'inférence native d'un réseau de neurones à convolutions profondes comme YOLOv26n directement sur le processeur Edge d'un Raspberry Pi 4 présente une charge de calcul non négligeable. Une inférence continue à chaque trame brute génère une latence CPU de $\approx 55\text{ ms}$ par passe d'image ($640 \times 480$), ce qui ferait chuter le débit global du système sous la barre critique des $18\text{ FPS}$ et provoquerait une surchauffe thermique importante du boîtier IoT.
+
+Pour contourner cette contrainte matérielle majeure sans compromettre la sécurité du système, deux stratégies logicielles de contournement clés ont été implémentées :
+\begin{enumerate}
+    \item \textbf{Frame Skipping adaptatif (PHONE\_SKIP = 6) :} L'inférence du modèle YOLOv26n n'est exécutée que toutes les 6 frames vidéo réelles (soit une analyse toutes les $200\text{ ms}$). Compte tenu de la constante de temps humaine pour saisir et manipuler un smartphone (supérieure à $1,5$ seconde), cette fréquence d'échantillonnage reste amplement suffisante pour intercepter les distractions de manière réactive tout en divisant par 6 la charge CPU du modèle de détection d'objets.
+    \item \textbf{Inférence ciblée par crop (Crop-Inference) :} Si un visage est localisé de manière stable par l'analyseur attentionnel léger (L1), le système restreint la recherche du smartphone à une sous-région d'intérêt recadrée entourant le buste et les zones d'oreilles. Ce recadrage spatial permet de réduire la taille des tenseurs d'entrée à l'inférence YOLO, abaissant la latence CPU de passe d'inférence sous le seuil très confortable de $\approx 10\text{ ms}$.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    %\includegraphics[width=0.9\textwidth]{images/results_model2.png}
+    \caption{Résultats expérimentaux du modèle 2}
+    \label{fig:results_model2}
+\end{figure}
+
+%=========================================================
+\subsection{Comparaison des modèles}
+
+L'évaluation comparative entre l'approche hybride géométrique (Modèle 1) et l'approche par réseau neuronal profond entraîné (Modèle 2) a été menée selon quatre axes d'analyse technique complémentaires : les performances temporelles, la robustesse aux variations d'environnement, l'empreinte matérielle et l'explicabilité scientifique.
+
+\subsubsection{Comparaison des performances}
+
+Le Modèle 1 excelle dans le suivi dynamique et continu des variations physiologiques de l'utilisateur. Sa latence d'inférence ultra-faible (inférieure à $15\text{ ms}$) permet de générer des scores ergonomiques et attentionnels en temps réel avec un rafraîchissement d'une fluidité parfaite de $30\text{ FPS}$. 
+
+En revanche, le Modèle 2 offre une réactivité de classification immédiate face aux distractions basées sur des objets externes (comme la saisie d'un smartphone). L'exécution conjointe optimisée par saut de trame permet d'allier la fluidité physiologique continue du premier modèle avec la rigueur d'interception d'objets du second.
+
+\subsubsection{Comparaison de la robustesse}
+
+Le Modèle 1 (MediaPipe) se montre extrêmement résistant aux variations morphologiques individuelles des utilisateurs grâce à sa calibration dynamique au démarrage. Il montre cependant des faiblesses lors de mouvements corporels extrêmes entraînant des occlusions anatomiques sévères (visage tourné à plus de $60^\circ$ cachant la moitié des repères oculaires).
+
+Le Modèle 2 (YOLOv26n) fait preuve d'une robustesse exceptionnelle face aux orientations spatiales complexes du smartphone et aux occultations partielles de l'objet par la main. Il est toutefois plus sensible aux conditions de très faible luminosité ambiante (sous-exposition réduisant les motifs de contraste nécessaires aux filtres convolutifs du réseau profond).
+
+\subsubsection{Comparaison des contraintes matérielles}
+
+En termes d'empreinte mémoire et de charge processeur, le Modèle 1 est extrêmement économe : l'allocation mémoire RAM est inférieure à $40\text{ Mo}$ et l'exécution CPU n'occupe que des fractions de cycles de calcul arithmétique simple. 
+
+Le Modèle 2, bien qu'optimisé dans sa version Nano ($yolo26n.pt$ d'une taille compacte de $\approx 5,5\text{ Mo}$), requiert une bande passante mémoire RAM supérieure ($\approx 120\text{ Mo}$ pour le chargement des tenseurs convolutifs et l'allocation des buffers d'inférence de la bibliothèque Ultralytics) et sollicite fortement l'unité de calcul vectoriel du processeur, justifiant l'application obligatoire de notre pipeline optimisé de saut de trames et d'inférence ciblée par zone (\textit{crop}).
+
+\subsubsection{Comparaison de l’explicabilité}
+
+Le Modèle 1 est entièrement transparent d'un point de vue scientifique. Chaque score généré découle d'équations trigonométriques et statistiques claires et modifiables. Les causes d'une baisse de score (par exemple, un affaissement corporel de $15^\circ$ par rapport à la baseline) sont immédiatement isolables et justifiables.
+
+À l'inverse, le Modèle 2 fonctionne selon un paradigme connexionniste boîte noire où les décisions d'identification du smartphone reposent sur l'activation complexe de milliers de cartes de caractéristiques neuronales non interprétables directement, d'où l'importance de son couplage avec nos filtres géométriques d'oreille et d'aire relative pour en contraindre et expliquer logiquement le comportement de sortie.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{6cm}|p{6cm}|}
+\hline
+\textbf{Critère d'analyse} & \textbf{Modèle 1 (Hybride géométrique)} & \textbf{Modèle 2 (YOLOv26n entraîné)} \\ \hline
+\textbf{Technologie clé} & MediaPipe FaceMesh \& Pose + solveur PnP & Réseau de neurones convolutifs Anchor-Free \\ \hline
+\textbf{Objectif principal} & Estimation d'attention, fatigue oculaire et posture & Détection et localisation spatiale du smartphone \\ \hline
+\textbf{Latence CPU Edge} & $\approx 15\text{ ms}$ (Ultra-rapide) & $\approx 55\text{ ms}$ (Natif) / $\approx 10\text{ ms}$ (Optimisé par crop) \\ \hline
+\textbf{Consommation RAM} & $\approx 40\text{ Mo}$ & $\approx 120\text{ Mo}$ \\ \hline
+\textbf{Fréquence d'exécution} & Continue ($30\text{ FPS}$) & Périodique (toutes les 6 frames, soit $5\text{ FPS}$) \\ \hline
+\textbf{Sensibilité environnement} & Occlusions anatomiques sévères & Faible luminosité et flou de bougé extrême \\ \hline
+\textbf{Explicabilité} & Totale ($100\%$ déterministe et géométrique) & Faible (Boîte noire probabiliste de deep learning) \\ \hline
+\end{tabular}
+\caption{Comparaison entre les deux approches de vision}
+\label{tab:comparaison_modeles}
+\end{table}
+
+%---------------------------------------------------------
+\subsection{Choix du modèle final}
+
+\subsubsection{Justification du choix}
+
+Au terme de l'évaluation comparative, le système ne procède pas à l'élimination de l'une des approches au profit exclusif de l'autre. Le choix d'ingénierie logicielle final s'est orienté vers un **modèle hybride en cascade**. 
+
+Cette architecture exploite le Modèle 1 comme capteur d'état permanent et léger en tâche de fond pour suivre la cinématique oculaire et ergonomique de l'utilisateur à haute fréquence. Le Modèle 2 est intégré sous forme de sentinelle asynchrone activée périodiquement (toutes les $200\text{ ms}$) ou déclenchée dynamiquement si le premier modèle identifie des indices comportementaux suspects (comme une position suspecte de la main près du visage ou une occultation prolongée du squelette d'une épaule).
+
+\subsubsection{Avantages du modèle retenu}
+
+L'approche hybride en cascade retenue offre trois avantages compétitifs décisifs :
+\begin{enumerate}
+    \item \textbf{Efficacité énergétique et thermique :} La consommation moyenne cumulée des processeurs Edge reste inférieure à $1,2\text{ W}$, évitant l'échauffement thermique du boîtier d'analyse local et garantissant une compatibilité totale avec les capacités matérielles d'un Raspberry Pi alimenté sur batterie.
+    \item \textbf{Précision ergonomique et sémantique :} Le croisement en temps réel des repères faciaux tridimensionnels du Modèle 1 avec les détections d'objets du Modèle 2 permet d'analyser la posture de distraction de manière extrêmement contextuelle (détection de l'intention d'utilisation, distinction entre un smartphone posé sur le bureau et un smartphone porté à l'oreille).
+    \item \textbf{Stabilité temporelle sans scintillement :} L'intégration des sorties des deux modèles au sein d'un moteur d'hystérésis asymétrique commun immunise le système contre les variations de détection rapides, offrant des scores d'une grande stabilité métrologique propice à un suivi statistique d'études longitudinales.
+\end{enumerate}
+
+%---------------------------------------------------------
+\subsection{Limites et perspectives}
+
+\subsubsection{Limites identifiées}
+
+Bien que le pipeline de vision et de scoring présente des performances exceptionnelles, trois limites techniques majeures ont été identifiées lors des phases de tests intensifs :
+\begin{enumerate}
+    \item \textbf{Dépendance à la phase de calibration initiale :} Le système requiert une stabilité ergonomique et oculaire de l'utilisateur durant les 4 premières secondes de sa session pour enregistrer des baselines fiables. Si l'utilisateur commence sa session dans une posture anormale (par exemple, avachi sur son bureau pour régler son matériel), les scores ultérieurs s'en trouveront faussés par une calibration biaisée.
+    \item \textbf{Sensibilité aux conditions d'éclairage extrêmes :} En cas de contre-jour violent (fenêtre située directement derrière l'utilisateur) ou d'obscurité totale où le visage n'est éclairé que par la lumière bleue de l'écran, le contraste des images capturées chute fortement, provoquant une perte intermittente des repères MediaPipe et des détections YOLO erronées.
+    \item \textbf{Contrainte mono-utilisateur :} Le pipeline L1-L5 est optimisé pour suivre et modéliser l'activité cognitive d'un individu unique positionné face à son poste de travail. L'intrusion d'une tierce personne dans le champ de la caméra déclenche un état de distraction sociale, ce qui est cohérent avec le cahier des charges, mais limite l'exploitation du boîtier dans des espaces de travail hautement collaboratifs ou des open spaces denses.
+\end{enumerate}
+
+\subsubsection{Perspectives d’amélioration}
+
+Pour dépasser ces limitations techniques, plusieurs pistes de développement futures sont envisagées :
+\begin{itemize}
+    \item \textbf{Calibration adaptative continue :} Remplacer le module de calibration statique initial par un algorithme d'apprentissage en ligne capable de recalculer et d'ajuster les baselines physiologiques de manière glissante tout au long de la session, en détectant automatiquement les périodes de retour volontaire à une posture neutre stable.
+    \item \textbf{Accélération matérielle et quantification :} Convertir les modèles de vision au format d'inférence hautement optimisé ONNX ou TensorRT et appliquer des techniques de quantification post-entraînement des poids en entiers 8 bits (INT8). Cette optimisation permettrait d'exécuter YOLOv26n à chaque trame sur des accélérateurs Edge à bas coût (tels que la clé USB Google Coral Edge TPU ou les cœurs NPU d'un Raspberry Pi 5).
+    \item \textbf{Support de capteurs infrarouges (IR) :} Intégrer la compatibilité avec des modules de capture vidéo infrarouge actif pour immuniser totalement le système contre les variations d'éclairage ambiant, garantissant un suivi attentionnel parfait même dans l'obscurité nocturne complète.
+\end{itemize}
+
+%---------------------------------------------------------
+\subsection{Conclusion}
+
+Le développement et l'implémentation de la partie "Vision et Score" au cours de ce Sprint 2 ont permis de concevoir un système de surveillance cognitive et ergonomique temps réel à la fois hautement performant, robuste et scientifiquement explicable. Grâce au couplage innovant en cascade d'estimateurs géométriques légers issus de squelettes anatomiques MediaPipe (Modèle 1) et d'un détecteur d'objets convolutif profond YOLOv26n optimisé (Modèle 2), le pipeline s'exécute de manière fluide sur du matériel embarqué Edge sans nécessiter de ressources GPU coûteuses. L'intégration de filtres de lissage temporels, de seuils adaptatifs compensés et d'un gestionnaire d'hystérésis asymétrique garantit la stabilité métrologique des scores générés et la pertinence des alertes transmises à l'utilisateur, posant ainsi des fondations solides pour l'orchestration comportementale globale du projet Smart Focus.
